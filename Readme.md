@@ -1,3 +1,7 @@
+# Introduction
+
+A dead simple crawler to get books information from Douban.
+
 # Pre-requesites
 
 - Python 3
@@ -19,7 +23,7 @@ python app.py get_tags
 python app.py crawl_books -i tags.csv
 ```
 
-> Certainly, you can write a tags.csv without the `get_tags` step. You'll have to make sure the tags you specified can lead to any actual result of books.
+> Certainly, you can create the tags.csv without using the `get_tags` script. You might want to make sure the tags you specified can lead to any actual result of books.
 
 # License
 
