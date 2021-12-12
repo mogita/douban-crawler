@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  app:
+    container_name: douban-crawler-app
+    build:
+      context: "."
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - proxy-pool
+    volumes:
+      - douban-crawler-data:/data
+    networks:
+      - douban-crawler
+
+  proxy-pool:
+    container_name: douban-crawler-proxy-pool
+    image: jhao104/proxy_pool:2.4.0
+    restart: unless-stopped
+    depends_on:
+      - redis
+    expose:
+      - 5010
+    environment:
+      DB_CONN: redis://douban-crawler-redis:6379/1
+    networks:
+      - douban-crawler 
+
+  redis:
+    container_name: douban-crawler-redis
+    image: redis:6-alpine
+    restart: unless-stopped
+    expose:
+      - 6379
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - douban-crawler
+
+networks:
+  douban-crawler:
+
+volumes:
+  douban-crawler-data:
+  redis-data:

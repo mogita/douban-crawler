@@ -31,23 +31,23 @@ columns = [
     'douban_url'
 ]
 
-def _write_book_info(tag, book_info_row):
+def _write_book_info(filepath, book_info_row):
     # Appending to the output file
-    with open(f"{tag}.csv", "a") as file:
+    with open(filepath, "a") as file:
         writer = csv.writer(file, quoting=csv.QUOTE_ALL, quotechar = "'")
         writer.writerows(book_info_row)
         file.close()
 
-def _write_headers(tag):
+def _write_headers(filepath, tag):
     # Overwrite the output file
-    with open(f"{tag}.csv", "w") as file:
+    with open(filepath, "w") as file:
         writer = csv.writer(file)
         writer.writerows([columns])
         file.close()
 
 
-def _write_failure_info(failure_row):
-    with open(f"failures.csv", "a") as file:
+def _write_failure_info(filepath, failure_row):
+    with open(filepath, "a") as file:
         writer = csv.writer(file)
         writer.writerows(failure_row)
         file.close()
@@ -168,13 +168,13 @@ def _drain_tag(tag):
             book_link = book_el.select('h2 > a')[0].get('href')
             try:
                 book_row = get_book_info(book_link)
-                _write_book_info(tag, [book_row])
+                _write_book_info(f"{args.output}/{tag}.csv", [book_row])
                 # Reset attempts for a valid piece of book information
                 attempts = 0
                 time.sleep(np.random.rand()*5)
             except Exception as err:
                 log.error(err)
-                _write_failure_info([[book_link]])
+                _write_failure_info(f"{args.output}/{tag}-failure.csv", [[book_link]])
         page += 1
 
 
@@ -185,7 +185,7 @@ def _start(args):
 
     for _, tag in tags.iteritems():
         log.info(f"crawling tag {tag}...")
-        _write_headers(tag)
+        _write_headers(f"{args.output}/{tag}.csv")
         _drain_tag(tag)
 
 
@@ -195,6 +195,9 @@ def main(raw_args=None):
     )
     parser.add_argument(
         "-i", "--input", required=True, help="Path to the input CSV file"
+    )
+    parser.add_argument(
+        "-o", "--output", required=True, help="Path to the output directory"
     )
     args = parser.parse_args(raw_args)
 
