@@ -1,6 +1,6 @@
 # Introduction
 
-A dead simple crawler to for data scraping from Douban.
+A dead simple crawler for data scraping from Douban.
 
 **Heads-up: this project is under heavy development and things shall change or even break from time to time till further stated. You can track the progress on this [Trello board](https://trello.com/b/ff2YcyvR/douban-crawler).**
 
