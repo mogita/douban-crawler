@@ -14,7 +14,7 @@ A dead simple crawler for data scraping from Douban.
 - Redis
 - [proxy_pool](https://github.com/jhao104/proxy_pool)
 
-> It's recommended to use Anaconda to handle the environment.
+> It's recommended to use Virtualenv or Anaconda to handle the environment.
 
 ### Steps
 
