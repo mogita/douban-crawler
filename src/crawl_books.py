@@ -56,6 +56,7 @@ def _write_failure_info(filepath, failure_row):
 def get_book_info(url):
     retry_count = 5
     proxy = get_proxy().get("proxy")
+    log.info(f"using proxy {proxy}")
 
     while retry_count > 0:
         try:
@@ -65,6 +66,7 @@ def get_book_info(url):
             retry_count -= 1
             log.error(err)
 
+    log.info(f"deleting {proxy}")
     delete_proxy(proxy)
 
     soup = BeautifulSoup(source, 'html.parser')
@@ -154,12 +156,20 @@ def _drain_tag(tag, args):
 
         url = f"{base_url}?start={page * page_size}&type=T"
 
-        try:
-            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()})
-            source = resp.text
-        except Exception as err:
-            log.error(err)
-            continue
+        retry_count = 5
+        proxy = get_proxy().get("proxy")
+        log.info(f"using proxy {proxy}")
+
+        while retry_count > 0:
+            try:
+                resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
+                source = resp.text
+            except Exception as err:
+                retry_count -= 1
+                log.error(err)
+
+        log.info(f"deleting {proxy}")
+        delete_proxy(proxy)
 
         soup = BeautifulSoup(source, "html.parser")
         book_list = soup.select("ul.subject-list > .subject-item")

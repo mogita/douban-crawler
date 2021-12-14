@@ -26,6 +26,7 @@ services:
       - 5010
     environment:
       DB_CONN: redis://douban-crawler-redis:6379/1
+      VERIFY_TIMEOUT: 2
     networks:
       - douban-crawler 
 
