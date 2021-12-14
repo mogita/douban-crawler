@@ -8,7 +8,7 @@ from src.ua import get_a_random_ua
 
 log = logging.getLogger(__name__)
 
-def main():
+def main(raw_args=None):
     parser = argparse.ArgumentParser(
         description="Fetch the tags from Douban books and output a CSV file containing these tags."
     )
