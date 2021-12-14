@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
 from src.ua import get_a_random_ua
+from src.proxy_pool import get_proxy, delete_proxy
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ def _write_book_info(filepath, book_info_row):
         writer.writerows(book_info_row)
         file.close()
 
-def _write_headers(filepath, tag):
+def _write_headers(filepath):
     # Overwrite the output file
     with open(filepath, "w") as file:
         writer = csv.writer(file)
@@ -53,12 +54,18 @@ def _write_failure_info(filepath, failure_row):
         file.close()
 
 def get_book_info(url):
-    try:
-        resp = requests.get(url, headers={'User-Agent': get_a_random_ua()})
-        source = resp.text
-    except Exception as err:
-        log.error(err)
-        return None
+    retry_count = 5
+    proxy = get_proxy().get("proxy")
+
+    while retry_count > 0:
+        try:
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
+            source = resp.text
+        except Exception as err:
+            retry_count -= 1
+            log.error(err)
+
+    delete_proxy(proxy)
 
     soup = BeautifulSoup(source, 'html.parser')
 
@@ -133,7 +140,7 @@ def get_book_info(url):
     return [title, subtitle, author, publisher, published_at, price, isbn, pages, bookbinding, book_intro, author_intro, toc, rating, rating_count, cover_img_url, douban_book_id, douban_url]
 
 
-def _drain_tag(tag):
+def _drain_tag(tag, args):
     page = 0
     page_size = 20
     base_url = f"https://book.douban.com/tag/{quote(tag)}"
@@ -186,7 +193,7 @@ def _start(args):
     for _, tag in tags.iteritems():
         log.info(f"crawling tag {tag}...")
         _write_headers(f"{args.output}/{tag}.csv")
-        _drain_tag(tag)
+        _drain_tag(tag, args)
 
 
 def main(raw_args=None):

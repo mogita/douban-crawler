@@ -9,6 +9,8 @@ services:
     depends_on:
       - redis
       - proxy-pool
+    environment:
+      PROXY_POOL_HOST: http://douban-crawler-proxy-pool
     volumes:
       - douban-crawler-data:/data
     networks:
