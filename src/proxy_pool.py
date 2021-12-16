@@ -7,6 +7,6 @@ def get_proxy():
     return requests.get(f"{host}/get/").json()
 
 def delete_proxy(proxy):
-    requests.get(f"{host}:5010/delete/?proxy={proxy}")
+    requests.get(f"{host}/delete/?proxy={proxy}")
 
 
