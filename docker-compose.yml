@@ -53,4 +53,5 @@ networks:
 volumes:
   douban-crawler-data:
   redis-data:
-  proxy-pool-override: ./proxy_pool/fetcher:/app/fetcher
+  proxy-pool-override: 
+    - ./proxy_pool/fetcher:/app/fetcher
