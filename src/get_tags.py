@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import numpy as np
 from src.ua import get_a_random_ua
+from src.proxy_pool import get_proxy, delete_proxy
 
 log = logging.getLogger(__name__)
 
