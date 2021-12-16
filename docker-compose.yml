@@ -27,11 +27,16 @@ services:
     environment:
       DB_CONN: redis://douban-crawler-redis:6379/1
       VERIFY_TIMEOUT: 2
-      PROXY_FETCHER: |
-        ["zhimaProxy"] 
       ZHIMA_PROXY_URL: "${ZHIMA_PROXY_URL}"
     volumes:
-      - proxy_pool_fetcher:/app/fetcher:ro
+      - type: bind
+        source: ./proxy_pool/setting.py
+        target: /app/setting.py
+        read_only: true
+      - type: bind
+        source: ./proxy_pool/fetcher/proxyFetcher.py
+        target: /app/fetcher/proxyFetcher.py
+        read_only: true
     networks:
       - douban-crawler 
 
@@ -53,4 +58,3 @@ networks:
 volumes:
   douban-crawler-data:
   redis-data:
-  proxy_pool_fetcher: 
