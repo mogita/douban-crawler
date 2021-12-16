@@ -60,7 +60,7 @@ def get_book_info(url):
 
     while retry_count > 0:
         try:
-            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, verify=False, proxies={"https": f"https://{proxy}"})
             source = resp.text
             break
         except Exception as err:
@@ -163,7 +163,7 @@ def _drain_tag(tag, args):
 
         while retry_count > 0:
             try:
-                resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
+                resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, verify=False, proxies={"https": f"https://{proxy}"})
                 source = resp.text
                 break
             except Exception as err:

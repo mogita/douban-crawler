@@ -25,7 +25,8 @@ def main(raw_args=None):
     while retry_count > 0:
         try:
             url = "https://book.douban.com/tag/"
-            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, verify=False, proxies={"https": f"https://{proxy}"})
+            log.info(resp.text)
             source = resp.text
             break
         except Exception as err:

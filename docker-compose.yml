@@ -5,7 +5,7 @@ services:
     container_name: douban-crawler-app
     build:
       context: "."
-    restart: unless-stopped
+    restart: "no"
     depends_on:
       - redis
       - proxy-pool
