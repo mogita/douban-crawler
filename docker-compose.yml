@@ -12,7 +12,7 @@ services:
     environment:
       PROXY_POOL_HOST: http://douban-crawler-proxy-pool:5010
     volumes:
-      - douban-crawler-data:/data
+      - ./_data:/data
     networks:
       - douban-crawler
 
@@ -56,5 +56,5 @@ networks:
   douban-crawler:
 
 volumes:
-  douban-crawler-data:
+  _data:
   redis-data:
