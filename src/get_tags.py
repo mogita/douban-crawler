@@ -17,13 +17,22 @@ def main(raw_args=None):
     )
     args = parser.parse_args(raw_args)
 
-    url = "https://book.douban.com/tag/"
-    try:
-        content = requests.get(url, headers={'User-Agent': get_a_random_ua()})
-        source = content.text
-    except e:
-        log.error(e)
-        exit(1)
+    retry_count = 5
+    proxy = get_proxy().get("proxy")
+    log.info(f"using proxy {proxy}")
+
+    while retry_count > 0:
+        try:
+            url = "https://book.douban.com/tag/"
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
+            source = resp.text
+            break
+        except Exception as err:
+            retry_count -= 1
+            log.error(err)
+
+    log.info(f"deleting {proxy}")
+    delete_proxy(proxy)
 
     soup = BeautifulSoup(source, "html.parser")
     tags = list(map(lambda r: [r.select("a")[0].contents[0]], soup.findAll("td")))

@@ -62,6 +62,7 @@ def get_book_info(url):
         try:
             resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
             source = resp.text
+            break
         except Exception as err:
             retry_count -= 1
             log.error(err)
@@ -164,6 +165,7 @@ def _drain_tag(tag, args):
             try:
                 resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies={"http": f"http://{proxy}"})
                 source = resp.text
+                break
             except Exception as err:
                 retry_count -= 1
                 log.error(err)
