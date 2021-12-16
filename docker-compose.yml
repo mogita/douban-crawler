@@ -31,7 +31,7 @@ services:
         ["zhimaProxy"] 
       ZHIMA_PROXY_URL: "${ZHIMA_PROXY_URL}"
     volumes:
-      - proxy_pool/fetcher:/app/fetcher
+      - proxy-pool-override
     networks:
       - douban-crawler 
 
@@ -53,4 +53,4 @@ networks:
 volumes:
   douban-crawler-data:
   redis-data:
-  proxy_pool:
+  proxy-pool-override: ./proxy_pool/fetcher:/app/fetcher
