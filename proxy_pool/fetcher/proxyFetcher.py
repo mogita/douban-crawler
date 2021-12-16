@@ -18,7 +18,7 @@ class ProxyFetcher(object):
             log.error("ZHIMA_PROXY_URL must be a valid URL in order to call zhimaProxy")
             return
         resp = WebRequest().get(url)
-        proxies = resp.split('\n')
+        proxies = resp.text.split('\n')
         for proxy in proxies:
             yield proxy
 
