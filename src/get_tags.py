@@ -21,11 +21,12 @@ def main(raw_args=None):
     retry_count = 5
     proxy = get_proxy().get("proxy")
     log.info(f"using proxy {proxy}")
+    source = ""
 
     while retry_count > 0:
         try:
             url = "https://book.douban.com/tag/"
-            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, verify=False, proxies={"https": f"https://{proxy}"})
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, verify=False, proxies={"http": f"http://{proxy}"})
             log.info(resp.text)
             source = resp.text
             break
