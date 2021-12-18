@@ -193,7 +193,7 @@ def _start(args):
 
 
 def _check_proxy():
-    return get_count() > 0:
+    return get_count() > 0
 
 
 def main(raw_args=None):
