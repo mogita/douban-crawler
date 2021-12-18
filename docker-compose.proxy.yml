@@ -33,7 +33,7 @@ services:
       - 6379
     command: ["redis-server", "--appendonly", "yes", "--save", "60", "1", "--loglevel", "warning"]
     volumes:
-      - redis-data:/data
+      - ./redis-data:/data
     networks:
       - douban-crawler
 
