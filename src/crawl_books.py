@@ -156,7 +156,7 @@ def _drain_tag(tag, args):
         book_urls = list(map(lambda book_el: book_el.select('h2 > a')[0].get('href'), book_list))
 
         with ThreadPoolExecutor() as tpool:
-            response_list = list(pool.map(req, book_urls))
+            response_list = list(tpool.map(req, book_urls))
 
         for book_source, book_url in response_list:
             try:
