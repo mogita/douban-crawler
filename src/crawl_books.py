@@ -3,13 +3,16 @@ import time
 import argparse
 import logging
 import requests
+from os import path
 from urllib.parse import quote, urlsplit
 import pandas as pd
 import numpy as np
+from xpinyin import Pinyin 
 from bs4 import BeautifulSoup
 from src.http import req, batch_req
 
 log = logging.getLogger(__name__)
+pinyin = Pinyin()
 
 columns = [
     'title',
@@ -33,21 +36,21 @@ columns = [
 
 def _write_book_info(filepath, book_info_row):
     # Appending to the output file
-    with open(filepath.encode("UTF-8"), "a", encoding="UTF-8") as file:
+    with open(filepath, "a", encoding="UTF-8") as file:
         writer = csv.writer(file, quoting=csv.QUOTE_ALL, quotechar = "'")
         writer.writerows(book_info_row)
         file.close()
 
 def _write_headers(filepath):
     # Overwrite the output file
-    with open(filepath.encode("UTF-8"), "w", encoding="UTF-8") as file:
+    with open(filepath, "w", encoding="UTF-8") as file:
         writer = csv.writer(file)
         writer.writerows([columns])
         file.close()
 
 
 def _write_failure_info(filepath, failure_row):
-    with open(filepath.encode("UTF-8"), "a", encoding="UTF-8") as file:
+    with open(filepath, "a", encoding="UTF-8") as file:
         writer = csv.writer(file)
         writer.writerows(failure_row)
         file.close()
@@ -153,12 +156,12 @@ def _drain_tag(tag, args):
         for book_source, book_url in batch_req(book_urls):
             try:
                 book_row = parse_book_info(book_source, book_url)
-                _write_book_info(f"{args.output}/{tag}.csv", [book_row])
+                _write_book_info(path.join(args.output, f"{pinyin(tag, tone_marks='numbers')}.csv"), [book_row])
                 # Reset attempts for a valid piece of book information
                 attempts = 0
             except Exception as err:
                 log.error(err)
-                _write_failure_info(f"{args.output}/{tag}-failure.csv", [[book_link]])
+                _write_failure_info(path.join(args.output, f"{pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_link]])
         page += 1
 
 
@@ -169,7 +172,7 @@ def _start(args):
 
     for _, tag in tags.iteritems():
         log.info(f"crawling tag {tag}...")
-        _write_headers(f"{args.output}/{tag}.csv")
+        _write_headers(path.join(args.output, f"{pinyin(tag, tone_marks='numbers')}.csv"))
         _drain_tag(tag, args)
 
 
