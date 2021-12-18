@@ -7,8 +7,7 @@ from urllib.parse import quote, urlsplit
 import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
-from src.ua import get_a_random_ua
-from src.proxy_pool import get_proxy, delete_proxy
+from src.http import req, batch_req
 
 log = logging.getLogger(__name__)
 
@@ -53,23 +52,7 @@ def _write_failure_info(filepath, failure_row):
         writer.writerows(failure_row)
         file.close()
 
-def get_book_info(url):
-    retry_count = 5
-    proxy = get_proxy().get("proxy")
-    log.info(f"using proxy {proxy}")
-
-    while retry_count > 0:
-        try:
-            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, verify=False, proxies={"http": f"http://{proxy}"})
-            source = resp.text
-            break
-        except Exception as err:
-            retry_count -= 1
-            log.error(err)
-
-    log.info(f"deleting {proxy}")
-    delete_proxy(proxy)
-
+def parse_book_info(source, url):
     soup = BeautifulSoup(source, 'html.parser')
 
     url_parts = urlsplit(url)
@@ -153,26 +136,9 @@ def _drain_tag(tag, args):
 
     while(1):
         log.info(f"attempting listings page {page + 1}")
-        time.sleep(np.random.rand()*5)
 
         url = f"{base_url}?start={page * page_size}&type=T"
-
-        retry_count = 5
-        proxy = get_proxy().get("proxy")
-        log.info(f"using proxy {proxy}")
-
-        while retry_count > 0:
-            try:
-                resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, verify=False, proxies={"http": f"http://{proxy}"})
-                source = resp.text
-                break
-            except Exception as err:
-                retry_count -= 1
-                log.error(err)
-
-        log.info(f"deleting {proxy}")
-        delete_proxy(proxy)
-
+        source = req(url)
         soup = BeautifulSoup(source, "html.parser")
         book_list = soup.select("ul.subject-list > .subject-item")
 
@@ -183,14 +149,13 @@ def _drain_tag(tag, args):
             break
 
         log.info(f"{len(book_list)} books found")
-        for book_el in book_list:
-            book_link = book_el.select('h2 > a')[0].get('href')
+        book_urls = list(map(lambda book_el: book_el.select('h2 > a')[0].get('href'), book_list))
+        for book_source, book_url in batch_req(book_urls):
             try:
-                book_row = get_book_info(book_link)
+                book_row = parse_book_info(book_source, book_url)
                 _write_book_info(f"{args.output}/{tag}.csv", [book_row])
                 # Reset attempts for a valid piece of book information
                 attempts = 0
-                time.sleep(np.random.rand()*5)
             except Exception as err:
                 log.error(err)
                 _write_failure_info(f"{args.output}/{tag}-failure.csv", [[book_link]])
