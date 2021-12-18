@@ -33,21 +33,21 @@ columns = [
 
 def _write_book_info(filepath, book_info_row):
     # Appending to the output file
-    with open(filepath, "a", encoding="UTF-8") as file:
+    with open(filepath.encode("UTF-8"), "a", encoding="UTF-8") as file:
         writer = csv.writer(file, quoting=csv.QUOTE_ALL, quotechar = "'")
         writer.writerows(book_info_row)
         file.close()
 
 def _write_headers(filepath):
     # Overwrite the output file
-    with open(filepath, "w", encoding="UTF-8") as file:
+    with open(filepath.encode("UTF-8"), "w", encoding="UTF-8") as file:
         writer = csv.writer(file)
         writer.writerows([columns])
         file.close()
 
 
 def _write_failure_info(filepath, failure_row):
-    with open(filepath, "a", encoding="UTF-8") as file:
+    with open(filepath.encode("UTF-8"), "a", encoding="UTF-8") as file:
         writer = csv.writer(file)
         writer.writerows(failure_row)
         file.close()
