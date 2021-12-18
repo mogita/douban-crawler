@@ -166,7 +166,7 @@ def _drain_tag(tag, args):
                 attempts = 0
             except Exception as err:
                 log.error(err)
-                _write_failure_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_link]])
+                _write_failure_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_url]])
         page += 1
 
 
