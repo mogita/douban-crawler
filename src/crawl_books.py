@@ -192,10 +192,6 @@ def _start(args):
         _drain_tag(tag, args)
 
 
-def _check_proxy():
-    return get_count() > 0
-
-
 def main(raw_args=None):
     parser = argparse.ArgumentParser(
         description="Crawl book information from douban.com based on a CSV of tags. You can generate a CSV of tags with 'get_tags'."
@@ -208,7 +204,7 @@ def main(raw_args=None):
     )
     args = parser.parse_args(raw_args)
 
-    if not _check_proxy():
+    if get_count() == 0:
         log.error("proxy pool is empty, mission aborted")
         return
 

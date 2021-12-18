@@ -4,7 +4,8 @@ import csv
 from bs4 import BeautifulSoup
 import numpy as np
 from os import path
-from src.http import req 
+from src.http import req
+from src.proxy_pool import get_count
 
 log = logging.getLogger(__name__)
 
@@ -16,6 +17,10 @@ def main(raw_args=None):
         "-o", "--output", required=True, help="Path to the output directory"
     )
     args = parser.parse_args(raw_args)
+
+    if get_count() == 0:
+        log.error("proxy pool is empty, mission aborted")
+        return
 
     url = "https://book.douban.com/tag/"
     source, _ = req(url)
