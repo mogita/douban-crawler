@@ -5,9 +5,10 @@ import logging
 import requests
 from os import path
 from urllib.parse import quote, urlsplit
+from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import numpy as np
-from xpinyin import Pinyin 
+from xpinyin import Pinyin
 from bs4 import BeautifulSoup
 from src.http import req, batch_req
 
@@ -153,7 +154,11 @@ def _drain_tag(tag, args):
 
         log.info(f"{len(book_list)} books found")
         book_urls = list(map(lambda book_el: book_el.select('h2 > a')[0].get('href'), book_list))
-        for book_source, book_url in batch_req(book_urls):
+
+        with ThreadPoolExecutor() as tpool:
+            response_list = list(pool.map(req, book_urls))
+
+        for book_source, book_url in response_list:
             try:
                 book_row = parse_book_info(book_source, book_url)
                 _write_book_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}.csv"), [book_row])
