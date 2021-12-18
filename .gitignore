@@ -1,8 +1,9 @@
 *.csv
+redis-data/
 **/**/__pycache__
-/env
 .DS_Store
 _data/
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

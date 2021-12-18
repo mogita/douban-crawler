@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  proxy-pool:
+    container_name: douban-crawler-proxy-pool
+    image: jhao104/proxy_pool:2.4.0
+    restart: unless-stopped
+    depends_on:
+      - redis
+    expose:
+      - 5010
+    environment:
+      DB_CONN: redis://douban-crawler-redis:6379/1
+      VERIFY_TIMEOUT: 2
+      ZHIMA_PROXY_URL: "${ZHIMA_PROXY_URL}"
+    volumes:
+      - type: bind
+        source: ./proxy_pool/setting.py
+        target: /app/setting.py
+        read_only: true
+      - type: bind
+        source: ./proxy_pool/fetcher/proxyFetcher.py
+        target: /app/fetcher/proxyFetcher.py
+        read_only: true
+    networks:
+      - douban-crawler 
+
+  redis:
+    container_name: douban-crawler-redis
+    image: redis:6-alpine
+    restart: unless-stopped
+    expose:
+      - 6379
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - douban-crawler
+
+networks:
+  douban-crawler:
+
+volumes:
+  redis-data:
