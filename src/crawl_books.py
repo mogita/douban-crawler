@@ -143,13 +143,22 @@ def _drain_tag(tag, args):
 
         url = f"{base_url}?start={page * page_size}&type=T"
         source, _ = req(url)
+        if source == None and attempts < max_attempts:
+            log.warn(f"failed to make request for page {page + 1}, will retry")
+            continue
+        else:
+            log.warn(f"failed to make request for page {page + 1}, exhausted and abort")
+            break
+
         soup = BeautifulSoup(source, "html.parser")
         book_list = soup.select("ul.subject-list > .subject-item")
 
         attempts += 1
         if book_list == None and attempts < max_attempts:
+            log.warn(f"no books on page {page + 1}, will retry")
             continue
         elif book_list == None or len(book_list) <= 1:
+            log.warn(f"no books on page {page + 1}, exhausted and abort")
             break
 
         log.info(f"{len(book_list)} books found")
