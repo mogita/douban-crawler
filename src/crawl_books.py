@@ -156,12 +156,12 @@ def _drain_tag(tag, args):
         for book_source, book_url in batch_req(book_urls):
             try:
                 book_row = parse_book_info(book_source, book_url)
-                _write_book_info(path.join(args.output, f"{pinyin(tag, tone_marks='numbers')}.csv"), [book_row])
+                _write_book_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}.csv"), [book_row])
                 # Reset attempts for a valid piece of book information
                 attempts = 0
             except Exception as err:
                 log.error(err)
-                _write_failure_info(path.join(args.output, f"{pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_link]])
+                _write_failure_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_link]])
         page += 1
 
 
@@ -172,7 +172,7 @@ def _start(args):
 
     for _, tag in tags.iteritems():
         log.info(f"crawling tag {tag}...")
-        _write_headers(path.join(args.output, f"{pinyin(tag, tone_marks='numbers')}.csv"))
+        _write_headers(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}.csv"))
         _drain_tag(tag, args)
 
 
