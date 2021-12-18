@@ -5,9 +5,10 @@ import logging
 import requests
 from os import path
 from urllib.parse import quote, urlsplit
+from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import numpy as np
-from xpinyin import Pinyin 
+from xpinyin import Pinyin
 from bs4 import BeautifulSoup
 from src.http import req, batch_req
 
@@ -142,18 +143,32 @@ def _drain_tag(tag, args):
 
         url = f"{base_url}?start={page * page_size}&type=T"
         source, _ = req(url)
+
+        attempts += 1
+        if source == None and attempts < max_attempts:
+            log.warn(f"failed to make request for page {page + 1}, will retry")
+            continue
+        else:
+            log.warn(f"failed to make request for page {page + 1}, exhausted and abort")
+            break
+
         soup = BeautifulSoup(source, "html.parser")
         book_list = soup.select("ul.subject-list > .subject-item")
 
-        attempts += 1
         if book_list == None and attempts < max_attempts:
+            log.warn(f"no books on page {page + 1}, will retry")
             continue
         elif book_list == None or len(book_list) <= 1:
+            log.warn(f"no books on page {page + 1}, exhausted and abort")
             break
 
         log.info(f"{len(book_list)} books found")
         book_urls = list(map(lambda book_el: book_el.select('h2 > a')[0].get('href'), book_list))
-        for book_source, book_url in batch_req(book_urls):
+
+        with ThreadPoolExecutor() as tpool:
+            response_list = list(tpool.map(req, book_urls))
+
+        for book_source, book_url in response_list:
             try:
                 book_row = parse_book_info(book_source, book_url)
                 _write_book_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}.csv"), [book_row])
@@ -161,7 +176,7 @@ def _drain_tag(tag, args):
                 attempts = 0
             except Exception as err:
                 log.error(err)
-                _write_failure_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_link]])
+                _write_failure_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_url]])
         page += 1
 
 
