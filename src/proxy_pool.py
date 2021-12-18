@@ -9,4 +9,13 @@ def get_proxy():
 def delete_proxy(proxy):
     requests.get(f"{host}/delete/?proxy={proxy}")
 
-
+def get_count():
+    resp = requests.get(f"{host}/count/")
+    if resp == None:
+        return 0
+    else:
+        try:
+            resp_json = resp.json()
+            return resp["total"] if "total" in resp else 0
+        except:
+            return 0

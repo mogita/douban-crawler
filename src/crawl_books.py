@@ -11,6 +11,7 @@ import numpy as np
 from xpinyin import Pinyin
 from bs4 import BeautifulSoup
 from src.http import req, batch_req
+from src.proxy_pool import get_count
 
 log = logging.getLogger(__name__)
 pinyin = Pinyin()
@@ -191,6 +192,10 @@ def _start(args):
         _drain_tag(tag, args)
 
 
+def _check_proxy():
+    return get_count() > 0:
+
+
 def main(raw_args=None):
     parser = argparse.ArgumentParser(
         description="Crawl book information from douban.com based on a CSV of tags. You can generate a CSV of tags with 'get_tags'."
@@ -202,6 +207,10 @@ def main(raw_args=None):
         "-o", "--output", required=True, help="Path to the output directory"
     )
     args = parser.parse_args(raw_args)
+
+    if not _check_proxy():
+        log.error("proxy pool is empty, mission aborted")
+        return
 
     _start(args)
 
