@@ -138,7 +138,7 @@ def _drain_tag(tag, args):
         log.info(f"attempting listings page {page + 1}")
 
         url = f"{base_url}?start={page * page_size}&type=T"
-        source = req(url)
+        source, _ = req(url)
         soup = BeautifulSoup(source, "html.parser")
         book_list = soup.select("ul.subject-list > .subject-item")
 
