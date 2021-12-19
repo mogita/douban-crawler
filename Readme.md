@@ -50,17 +50,17 @@ docker-compose up -d
 
 ## Steps
 
-1. This project depends on `proxy_pool` for making anonymous requests. You should either setup your own instance or if yor're super lazy just try your luck with the free server setup by the [proxy_pool](https://github.com/jhao104/proxy_pool) project. You should be warned about the super low usability of the free IPs. To customize providers fetching method, tweak the code under `proxy_pool/fetcher` directory.
+1. This project depends on `proxy_pool` for making anonymous requests. You should either setup your own instance or if yor're super lazy just try your luck with the free server setup by the [proxy_pool](https://github.com/jhao104/proxy_pool) project. You should be warned about the super low usability of the free IPs. To customize the fetching method for different providers, tweak the code under `proxy_pool/fetcher` directory. Please refer to the docs of `proxy_pool` to learn more.
 
 Edit `.env` file to set the proper environment variables:
 
 ```bash
-# As I'm using Zhima HTTP Proxy I'll put the API here so proxy_pool/fetcher can 
-# request the provider and get new IPs. 
+# As I'm using Zhima HTTP Proxy I'll put the API here so proxy_pool/fetcher knows 
+# where to get new IPs to refresh the pool. 
 ZHIMA_PROXY_URL="https://..."
 
-# Put the host and port here for the "proxy_pool" instance, whether it's running
-# locally, on your VPS or using the public one.
+# Put the host name and port (if needed) here for the "proxy_pool" instance so this
+# crawler knows where the pool is.
 PROXY_POOL_HOST="https://localhost:5010"
 ```
 
@@ -73,17 +73,17 @@ pip install -r requirements.txt
 3. Run `get_tags` to fetch all the trending tags.
 
 ```bash
-# This will generate a file tags.csv
+# This will generate a file named tags.csv under the specified `output` directory
 PROXY_POOL_HOST=https://<host-of-step-1>... python app.py get_tags -o /your-output-dir
 ```
 
-4. Run `crawl_books` to start crawling the books by the tags from the previous step.
+4. Run `crawl_books` to start crawling by the tags given in the `csv` file.
 
 ```bash
 PROXY_POOL_HOST=https://<host-of-step-1>... python app.py crawl_books -i /some-where/tags.csv -o /your-output-dir
 ```
 
-> Certainly, you can create the tags.csv without using the `get_tags` script. You may want to make sure the tags you specified can lead to any actual result of books.
+> Certainly, you can create the tags.csv without using the `get_tags` script. You may want to make sure the tags you entered can lead to any actual result of data.
 
 # License
 
