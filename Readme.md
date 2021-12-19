@@ -24,13 +24,17 @@ ZHIMA_PROXY_URL="https://..."
 2. Build and start
 
 ```bash
-# Start the proxy_pool containers first, and you might want to wait for a while to make sure there's IP available in the pool by looking at the logs of container "douban-crawler-proxy-pool". With available IPs you're good to go to the next command.
+# Start the proxy_pool containers first, and you might want to wait for a while
+# to make sure there's IP available in the pool by looking at the logs of 
+# container "douban-crawler-proxy-pool". With available IPs you're good to go 
+# to the next command.
 docker-compose -f docker-compose.proxy.yml up -d
 
 # You can add `--no-cache` to always build a clean image
 docker-compose build
 
-# You can add `--force-recreate` if you want to drop the container even when the configuration or the image hasn't changed.
+# You can add `--force-recreate` if you want to drop the container even when 
+# the configuration or the image hasn't changed.
 docker-compose up -d
 ```
 
@@ -51,10 +55,12 @@ docker-compose up -d
 Edit `.env` file to set the proper environment variables:
 
 ```bash
-# As I'm using Zhima HTTP Proxy I'll put the API here so proxy_pool/fetcher can request the provider and get new IPs. 
+# As I'm using Zhima HTTP Proxy I'll put the API here so proxy_pool/fetcher can 
+# request the provider and get new IPs. 
 ZHIMA_PROXY_URL="https://..."
 
-# Put the host and port here for the "proxy_pool" instance, whether it's running locally, on your VPS or using the public one.
+# Put the host and port here for the "proxy_pool" instance, whether it's running
+# locally, on your VPS or using the public one.
 PROXY_POOL_HOST="https://localhost:5010"
 ```
 
