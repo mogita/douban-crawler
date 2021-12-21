@@ -10,6 +10,10 @@ services:
       - db
     environment:
       PROXY_POOL_HOST: http://douban-crawler-proxy-pool:5010
+      DB_HOST: douban-crawler-db
+      DB_USER: "${DB_USER}"
+      DB_PASS: "${DB_PASS}"
+      DB_NAME: "${DB_NAME}"
     volumes:
       - ./_data:/data
     networks:
@@ -24,6 +28,10 @@ services:
       - 5432
     volumes:
       - ./_pg:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASS}"
+      POSTGRES_DB: "${DB_NAME}"
     networks:
       - douban-crawler-db
 
