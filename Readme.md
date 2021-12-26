@@ -43,6 +43,7 @@ docker-compose up -d
 ## Prerequisites
 
 - Python 3 with `pip`
+- PostgreSQL
 - Redis
 - [proxy_pool](https://github.com/jhao104/proxy_pool)
 
@@ -70,14 +71,27 @@ PROXY_POOL_HOST="https://localhost:5010"
 pip install -r requirements.txt
 ```
 
-3. Run `get_tags` to fetch all the trending tags.
+3. Migrate database schemas
+
+First you should install `golang-migrate/migrate` tool to enable the `migrate` command. Follow the installation guides here: [`migrate CLI`](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate).
+
+Then make the migration to your database (change the `user`, `pass` and/or hostname and port accordingly):
+
+```bash
+migrate -database "postgres://user:pass@localhost:5432/crawler?sslmode=disable" -path migrations up
+```
+
+4. Run `get_tags` to fetch all the trending tags.
 
 ```bash
 # This will generate a file named tags.csv under the specified `output` directory
-PROXY_POOL_HOST=https://<host-of-step-1>... python app.py get_tags -o /your-output-dir
+PROXY_POOL_HOST=https://<host-of-step-1>... python app.py get_tags
+
+# To make request without proxies, add "WITHOUT_PROXY" environment variable
+WITHOUT_PROXY=yes python app.py get_tags
 ```
 
-4. Run `crawl_books` to start crawling by the tags given in the `csv` file.
+5. Run `crawl_books` to start crawling by the tags given in the `csv` file.
 
 ```bash
 PROXY_POOL_HOST=https://<host-of-step-1>... python app.py crawl_books -i /some-where/tags.csv -o /your-output-dir

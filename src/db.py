@@ -60,7 +60,7 @@ class DB:
                 origin_id,
                 origin_url,
                 crawled
-            ) VALUES (%s)"""
+            ) VALUES (%s)""",
             books
         )
 
@@ -133,7 +133,7 @@ class DB:
             """INSERT INTO tags (
                 name,
                 current_page
-            ) VALUES (%s)"""
+            ) VALUES (%s)""",
             tags
         )
 

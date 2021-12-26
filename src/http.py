@@ -12,6 +12,25 @@ MAX_REJECTED = 5
 
 def req(url):
     retry_count = 5
+    source = None
+
+    while retry_count > 0:
+        time.sleep(np.random.rand()*5)
+        try:
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()})
+            source = resp.text
+            break
+        except requests.exceptions.RequestException as err:
+            retry_count -= 1
+
+    return source, url
+
+def batch_req(urls = []):
+    for url in urls:
+        yield req(url)
+
+def req_with_proxy(url):
+    retry_count = 5
     proxy = next_proxy()
     source = None
 
@@ -33,9 +52,9 @@ def req(url):
     return source, url
 
 
-def batch_req(urls = []):
+def batch_req_with_proxy(urls = []):
     for url in urls:
-        yield req(url)
+        yield req_with_proxy(url)
 
 def next_proxy():
     retry_count = 10
