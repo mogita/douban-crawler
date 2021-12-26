@@ -60,9 +60,10 @@ class DB:
                 origin_id,
                 origin_url,
                 crawled
-            ) VALUES (%s)""",
+            ) VALUES %s""",
             books
         )
+        self.conn.commit()
 
     def update_books(self, books=[]):
         if len(books) == 0:
@@ -114,6 +115,7 @@ class DB:
             ) WHERE books.id = data.id""",
             books
         )
+        self.conn.commit()
 
     def get_tags(self, batch_count=5):
         if batch_count < 0:
@@ -133,9 +135,10 @@ class DB:
             """INSERT INTO tags (
                 name,
                 current_page
-            ) VALUES (%s)""",
+            ) VALUES %s""",
             tags
         )
+        self.conn.commit()
 
     def update_tags(sefl, tags=[]):
         if len(tags) == 0:
@@ -153,6 +156,7 @@ class DB:
             ) WHERE tags.id = data.id""",
             tags
         )
+        self.conn.commit()
 
     def cursor(self):
         return self.cur

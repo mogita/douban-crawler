@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 
 load_dotenv()
 w_proxy = False if env.get("WITHOUT_PROXY") == "yes" else True
-log.info(env.get("WITHOUT_PROXY"))
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(
@@ -35,9 +34,16 @@ def main(raw_args=None):
     tags = list(map(lambda r: [r.select("a")[0].contents[0]], soup.findAll("td")))
 
     tag_models = list(map(lambda r: tag_model({'name': r[0], 'current_page': 0}), tags))
-    log.info(tag_models)
+    log.debug(tag_models)
 
     # save tags to db
+    try:
+        db = DB()
+        db.insert_tags(tag_models)
+        log.info(f"saved {len(tag_models)} tags to db")
+    except Exception as err:
+        log.error("failed to save the tags to db")
+        log.error(err)
 
 
 
