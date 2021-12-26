@@ -84,10 +84,10 @@ migrate -database "postgres://user:pass@localhost:5432/crawler?sslmode=disable" 
 4. Run `get_tags` to fetch all the trending tags.
 
 ```bash
-# This will generate a file named tags.csv under the specified `output` directory
+# To make requests with proxies automatically
 PROXY_POOL_HOST=https://<host-of-step-1>... python app.py get_tags
 
-# To make request without proxies, add "WITHOUT_PROXY" environment variable
+# To make requests without proxies, add "WITHOUT_PROXY" environment variable
 WITHOUT_PROXY=yes python app.py get_tags
 ```
 
