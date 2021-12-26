@@ -35,6 +35,29 @@ services:
     networks:
       - douban-crawler-db
 
+  migration:
+    container_name: douban-crawler-migration
+    image: migrate/migrate
+    dependes_on:
+      - db
+    command:
+      [
+        "/wait-for-it/wait-for-it.sh",
+        "douban-crawler-db:5432",
+        "--",
+        "migrate",
+        "-database",
+        "postgres://crawler:crawler@douban-crawler-db:5432/crawler?sslmode=disable&search_path=public",
+        "-path",
+        "/db/migrations",
+        "up"
+      ]
+    volumes:
+      - ./migrations:/db/migrations
+      - ./wait-for-it:/wait-for-it
+    networks:
+      - douban-crawler-db
+
 networks:
   douban-crawler:
   douban-crawler-db:
