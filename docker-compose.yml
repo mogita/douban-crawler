@@ -14,8 +14,6 @@ services:
       DB_USER: crawler
       DB_PASS: crawler
       DB_NAME: crawler
-    volumes:
-      - ./_data:/data
     networks:
       - douban-crawler
       - douban-crawler-db
@@ -63,5 +61,4 @@ networks:
   douban-crawler-db:
 
 volumes:
-  _data:
   _pg:

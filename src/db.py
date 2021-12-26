@@ -60,7 +60,8 @@ class DB:
                 origin_id,
                 origin_url,
                 crawled
-            ) VALUES %s""",
+            ) VALUES %s
+            ON CONFLICT DO NOTHING""",
             books
         )
         self.conn.commit()
@@ -135,7 +136,8 @@ class DB:
             """INSERT INTO tags (
                 name,
                 current_page
-            ) VALUES %s""",
+            ) VALUES %s
+            ON CONFLICT DO NOTHING""",
             tags
         )
         self.conn.commit()
