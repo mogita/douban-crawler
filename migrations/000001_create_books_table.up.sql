@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS books (
   origin text DEFAULT '',
   origin_id text DEFAULT '',
   origin_url text UNIQUE DEFAULT '',
+  crawled boolean DEFAULT False,
   created_at timestamp without time zone default (now() at time zone 'utc'),
   updated_at timestamp without time zone default (now() at time zone 'utc'),
   deleted_at timestamp without time zone default NULL
