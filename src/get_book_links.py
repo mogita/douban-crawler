@@ -52,15 +52,13 @@ def _get_book_links_from_tag(tag_data):
             log.warn(f"no books on page {page}, exhausted and abort")
             break
 
-        log.info(f"{len(book_list)} books found for tag {tag} on page {page}")
         book_urls = list(map(lambda book_el: book_el.select('h2 > a')[0].get('href'), book_list))
-
         book_data = list(map(lambda link: book_model({ 'origin_url': link }), book_urls))
         try:
             db.insert_books(book_data)
             log.info(f"saved {len(book_data)} books for tag {tag} on page {page}")
         except Exception as err:
-            log.error("failed to save book links to database")
+            log.error(f"failed to save book links for tag {tag} on page {page}")
             log.error(err)
 
         page += 1
