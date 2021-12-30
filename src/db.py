@@ -1,7 +1,10 @@
 from os import environ as env
+import logging
 import json
 import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
+
+log = logging.getLogger(__name__)
 
 db_host = env.get("DB_HOST")
 db_user = env.get("DB_USER")
@@ -21,7 +24,7 @@ class DB:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
             """SELECT * FROM public.books WHERE id = %s""",
-            (id),
+            (id,),
         )
         return cur.fetchone()
 
@@ -31,7 +34,7 @@ class DB:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
             """SELECT * FROM public.books WHERE crawled = False LIMIT %s""",
-            (batch_count),
+            (batch_count,),
         )
         return cur.fetchall()
 
@@ -71,7 +74,7 @@ class DB:
             return None
         execute_values(
             self.cur,
-            """UPDATE public.books SET (
+            """UPDATE public.books SET
                 title = data.title,
                 subtitle = data.subtitle,
                 author = data.author,
@@ -92,7 +95,7 @@ class DB:
                 origin_url = data.origin_url,
                 crawled = data.crawled,
                 updated_at = (now() at time zone 'utc')
-            ) FROM (VALUES %s) AS data (
+            FROM (VALUES %s) AS data (
                 id,
                 title,
                 subtitle,
@@ -124,7 +127,7 @@ class DB:
         cur = self.conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
             """SELECT * FROM public.tags LIMIT %s""",
-            (batch_count),
+            (batch_count,),
         )
         return cur.fetchall()
 
@@ -142,16 +145,17 @@ class DB:
         )
         self.conn.commit()
 
-    def update_tags(sefl, tags=[]):
+    def update_tags(self, tags=[]):
         if len(tags) == 0:
             return None
+        log.debug(tags)
         execute_values(
             self.cur,
-            """UPDATE public.tags SET (
+            """UPDATE public.tags SET
                 name = data.name,
                 current_page = data.current_page,
                 updated_at = (now() at time zone 'utc')
-            ) FROM (VALUES %s) AS data (
+            FROM (VALUES %s) AS data (
                 id,
                 name,
                 current_page

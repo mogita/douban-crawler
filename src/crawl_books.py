@@ -3,7 +3,6 @@ import time
 import argparse
 import logging
 import requests
-from os import path
 from urllib.parse import quote, urlsplit
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
@@ -12,9 +11,12 @@ from xpinyin import Pinyin
 from bs4 import BeautifulSoup
 from src.http import req, batch_req
 from src.proxy_pool import get_count
+from src.db import DB
 
 log = logging.getLogger(__name__)
+
 pinyin = Pinyin()
+db = DB()
 
 columns = [
     'title',
@@ -182,29 +184,21 @@ def _drain_tag(tag, args):
 
 
 def _start(args):
-    df = pd.read_csv(args.input)
-    tags = df.name
-    log.info(f"read {tags.size} tags")
+    tags = db.get_tags(1)
+    log.info(f"read {len(tags)} tags")
 
-    for _, tag in tags.iteritems():
-        log.info(f"crawling tag {tag}...")
-        _write_headers(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}.csv"))
-        _drain_tag(tag, args)
+    for tag in tags:
+        log.info(f"crawling tag {tag['name']}...")
+        # _drain_tag(tag, args)
 
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(
         description="Crawl book information from douban.com based on a CSV of tags. You can generate a CSV of tags with 'get_tags'."
     )
-    parser.add_argument(
-        "-i", "--input", required=True, help="Path to the input CSV file"
-    )
-    parser.add_argument(
-        "-o", "--output", required=True, help="Path to the output directory"
-    )
     args = parser.parse_args(raw_args)
 
-    if get_count() == 0:
+    if w_proxy and get_count() == 0:
         log.error("proxy pool is empty, mission aborted")
         return
 
