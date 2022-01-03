@@ -43,14 +43,12 @@ services:
         "/wait-for-it/wait-for-it.sh",
         "douban-crawler-db:5432",
         "--",
-        "migrate",
-        "-database",
-        "postgres://crawler:crawler@douban-crawler-db:5432/crawler?sslmode=disable&search_path=public",
-        "-path",
-        "/db/migrations",
-        "up"
+        "/root/migrate.sh"
       ]
     volumes:
+      - type: bind
+        source: ./migrate.sh
+        target: /root/migrate.sh
       - ./migrations:/db/migrations
       - ./wait-for-it:/wait-for-it
     networks:
