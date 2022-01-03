@@ -1,4 +1,10 @@
 #!/bin/sh
 
-python app.py get_tags -o /data
-python app.py crawl_books -i /data/tags.csv -o /data
+echo "getting tags..."
+python app.py get_tags
+
+echo "getting book links..."
+python app.py get_book_links
+
+echo "crawling books..."
+python app.py crawl_books

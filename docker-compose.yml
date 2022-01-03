@@ -6,15 +6,46 @@ services:
     build:
       context: "."
     restart: "no"
+    depends_on:
+      - db
     environment:
       PROXY_POOL_HOST: http://douban-crawler-proxy-pool:5010
-    volumes:
-      - ./_data:/data
+      DB_HOST: douban-crawler-db
+      DB_USER: crawler
+      DB_PASS: crawler
+      DB_NAME: crawler
     networks:
       - douban-crawler
+      - douban-crawler-db
+
+  db:
+    container_name: douban-crawler-db
+    restart: unless-stopped
+    image: postgis/postgis:14-master
+    expose:
+      - 5432
+    volumes:
+      - ./_pg:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: crawler
+      POSTGRES_PASSWORD: crawler
+      POSTGRES_DB: crawler
+    networks:
+      - douban-crawler-db
+
+  migration:
+    container_name: douban-crawler-migration
+    build:
+      dockerfile: Dockerfile.migrate
+      context: "."
+    depends_on:
+      - db
+    networks:
+      - douban-crawler-db
 
 networks:
   douban-crawler:
+  douban-crawler-db:
 
 volumes:
-  _data:
+  _pg:

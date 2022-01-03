@@ -15,6 +15,29 @@ This crawler depends on the [proxy_pool](https://github.com/jhao104/proxy_pool) 
 
 ## Steps
 
+### Without the Proxy Pool
+
+1. Create a `.env` file under the project root and add the following line:
+
+```bash
+WITHOUT_PROXY=yes
+```
+
+2. Build and start
+
+```bash
+# You can add `--no-cache` to always build a clean image
+docker-compose build
+
+# You can add `--force-recreate` if you want to drop the container even when 
+# the configuration or the image hasn't changed.
+docker-compose up -d
+```
+
+> Not using proxies might lead to 403 error responses from the source site.
+
+### With the Proxy Pool
+
 1. Free IPs just don't work most of the time. It's highly recommended that you choose a payed proxy provider and tweak the code under `proxy_pool` directory to override the functionality and suit your needs. Take Zhima (芝麻) HTTP Proxy for example, create a `.env` file and put the API endpoint into it:
 
 ```env
@@ -43,10 +66,11 @@ docker-compose up -d
 ## Prerequisites
 
 - Python 3 with `pip`
+- PostgreSQL
 - Redis
 - [proxy_pool](https://github.com/jhao104/proxy_pool)
 
-> It's recommended to use Virtualenv or Anaconda to handle the environment.
+> It might be a bit more convenient to use Virtualenv or Anaconda to handle the environment. But this differs from case to case so please know what you're dealing with before going ahead.
 
 ## Steps
 
@@ -55,6 +79,9 @@ docker-compose up -d
 Edit `.env` file to set the proper environment variables:
 
 ```bash
+# Adding the following line will make the scripts show verbose logs
+DEBUG=yes
+
 # As I'm using Zhima HTTP Proxy I'll put the API here so proxy_pool/fetcher knows 
 # where to get new IPs to refresh the pool. 
 ZHIMA_PROXY_URL="https://..."
@@ -62,6 +89,11 @@ ZHIMA_PROXY_URL="https://..."
 # Put the host name and port (if needed) here for the "proxy_pool" instance so this
 # crawler knows where the pool is.
 PROXY_POOL_HOST="https://localhost:5010"
+
+# Anyway if you don't need the proxy pool at all, e.g. you want the script to 
+# make request directly from your network, you can add the following line and
+# go to step 2
+WITHOUT_PROXY=yes
 ```
 
 2. Install dependencies.
@@ -70,20 +102,28 @@ PROXY_POOL_HOST="https://localhost:5010"
 pip install -r requirements.txt
 ```
 
-3. Run `get_tags` to fetch all the trending tags.
+3. Migrate database schemas
+
+First you should install `golang-migrate/migrate` tool to enable the `migrate` command. Follow the installation guides here: [`migrate CLI`](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate).
+
+Then make the migration to your database (change the `user`, `pass` and/or hostname and port accordingly):
 
 ```bash
-# This will generate a file named tags.csv under the specified `output` directory
-PROXY_POOL_HOST=https://<host-of-step-1>... python app.py get_tags -o /your-output-dir
+migrate -database "postgres://user:pass@localhost:5432/crawler?sslmode=disable" -path migrations up
 ```
 
-4. Run `crawl_books` to start crawling by the tags given in the `csv` file.
+4. Run the scripts in the following sequence:
 
 ```bash
-PROXY_POOL_HOST=https://<host-of-step-1>... python app.py crawl_books -i /some-where/tags.csv -o /your-output-dir
-```
+# First, get as more as possible tags
+python app.py get_tags
 
-> Certainly, you can create the tags.csv without using the `get_tags` script. You may want to make sure the tags you entered can lead to any actual result of data.
+# Second, iterate through tags and fetch the links to the books
+python app.py get_book_links
+
+# Lastly start to crawl books from the links
+python app.py crawl_books
+```
 
 # License
 

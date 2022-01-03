@@ -1,63 +1,30 @@
+import re
 import csv
 import time
 import argparse
 import logging
 import requests
-from os import path
+from datetime import datetime
+from os import path, environ as env
+from dotenv import load_dotenv
 from urllib.parse import quote, urlsplit
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import numpy as np
-from xpinyin import Pinyin
 from bs4 import BeautifulSoup
-from src.http import req, batch_req
+from src.http import req
 from src.proxy_pool import get_count
+from src.db import DB
+from src.model import book_model
 
 log = logging.getLogger(__name__)
-pinyin = Pinyin()
 
-columns = [
-    'title',
-    'subtitle',
-    'author',
-    'publisher',
-    'published_at',
-    'price',
-    'isbn',
-    'pages',
-    'bookbinding',
-    'book_intro',
-    'author_intro',
-    'toc',
-    'rating',
-    'rating_count',
-    'cover_img_url',
-    'douban_book_id',
-    'douban_url'
-]
-
-def _write_book_info(filepath, book_info_row):
-    # Appending to the output file
-    with open(filepath, "a", encoding="UTF-8") as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL, quotechar = "'")
-        writer.writerows(book_info_row)
-        file.close()
-
-def _write_headers(filepath):
-    # Overwrite the output file
-    with open(filepath, "w", encoding="UTF-8") as file:
-        writer = csv.writer(file)
-        writer.writerows([columns])
-        file.close()
+load_dotenv()
+DEBUG = True if env.get("DEBUG") == "yes" else False
 
 
-def _write_failure_info(filepath, failure_row):
-    with open(filepath, "a", encoding="UTF-8") as file:
-        writer = csv.writer(file)
-        writer.writerows(failure_row)
-        file.close()
 
-def parse_book_info(source, url):
+def parse(source, url):
     soup = BeautifulSoup(source, 'html.parser')
 
     url_parts = urlsplit(url)
@@ -65,8 +32,41 @@ def parse_book_info(source, url):
     douban_book_id = path_parts[2]
 
     book_meta = soup.select('#info')
-    meta_list = list(book_meta[0].strings)
-    meta_list = [i.strip() for i in meta_list if i.strip() != '']
+    if not book_meta:
+        return None
+
+    # Raw meta list with characters like "\n" and continuous spaces
+    meta_list_raw = list(book_meta[0].strings)
+    # Remove white chars around each element
+    meta_list_raw = [i.strip() for i in meta_list_raw if i.strip() != '']
+
+    # Move dangling ":" characters to their previous elements
+    # to keep a form of ["label1:", "content1", "content2", "label2:", "content3", ...]
+    meta_list_colon_aligned = []
+    for idx, val in enumerate(meta_list_raw):
+        if val == ":" and len(meta_list_colon_aligned) > 0:
+            meta_list_colon_aligned[idx - 1] += val
+        else:
+            meta_list_colon_aligned.append(val)
+
+    # Concatenate contents separated into multiple elements
+    # to keep a form of ["label1:", "content1 content2", "label2:", "content3", ...]
+    meta_list = []
+    holder = []
+    for val in meta_list_colon_aligned:
+        if val.endswith(":"):
+            if len(holder) > 0:
+                meta_list.append(" ".join(holder))
+            holder = []
+            meta_list.append(val)
+        else:
+            holder.append(val)
+    meta_list.append(" ".join(holder))
+
+    # Remove white characters and continuous spaces inside each element
+    meta_list = list(map(lambda r: r.replace("\n", ""), meta_list))
+    meta_list = list(map(lambda r: re.sub(' +', ' ', r), meta_list))
+    log.debug(meta_list)
 
     douban_url = url
 
@@ -74,19 +74,43 @@ def parse_book_info(source, url):
     title = soup.select("#wrapper > h1 > span")[0].contents[0]
     subtitle = meta_list[meta_list.index("副标题:") + 1] if "副标题:" in meta_list else ""
 
-    author = ""
-    if "作者:" in meta_list:
-        author = meta_list[meta_list.index("作者:") + 1]
-    elif soup.select("#info > span > a"):
-        author = soup.select("#info > span > a")[0].contents[0]
-    author = "".join(map(str.strip, author.split("\n")))
+    author = meta_list[meta_list.index("作者:") + 1] if "作者:" in meta_list else ""
 
-    publisher = meta_list[meta_list.index('出版社:') + 1] if '出版社:' in meta_list else ''
-    published_at = meta_list[meta_list.index('出版年:') + 1] if '出版年:' in meta_list else ''
+    author_url = ""
+    if soup.select("#info > span > a"):
+        # Try the structure of "#info > span > a"
+        author_url = soup.select("#info > span > a")[0].attrs["href"]
+    elif soup.select("#info > span"):
+        # Or try the structure of "#info > span -> first sibling that is an 'a' tag"
+        author_el = soup.select("#info > span")[0].find_next("a")
+        author_url = author_el.attrs["href"]
+
+    original_title = meta_list[meta_list.index('原作名:') + 1] if '原作名:' in meta_list else ''
+    translator = meta_list[meta_list.index('译者:') + 1] if '译者:' in meta_list else ''
+
+    producer = meta_list[meta_list.index('出品方:') + 1] if '出品方:' in meta_list else ''
+    series = meta_list[meta_list.index('丛书:') + 1] if '丛书:' in meta_list else ''
+
     price = meta_list[meta_list.index('定价:') + 1] if '定价:' in meta_list else ''
     isbn = meta_list[meta_list.index('ISBN:') + 1]  if 'ISBN:' in meta_list else ''
     pages = meta_list[meta_list.index('页数:') + 1] if '页数:' in meta_list else ''
     bookbinding = meta_list[meta_list.index('装帧:') + 1] if '装帧:' in meta_list else ''
+
+    publisher = meta_list[meta_list.index('出版社:') + 1] if '出版社:' in meta_list else ''
+    published_at = meta_list[meta_list.index('出版年:') + 1] if '出版年:' in meta_list else ''
+
+    # convert "published_at" into a valid timestamp
+    published_at_ts = None
+    try:
+        published_at_split = published_at.split("-")
+        published_at_ts = datetime(
+            int(published_at_split[0] if len(published_at_split) >= 1 else "2"),
+            int(published_at_split[1] if len(published_at_split) >= 2 else "1"),
+            int(published_at_split[2] if len(published_at_split) >= 3 else "1"),
+        ).timestamp()
+    except Exception as err:
+        log.warn("failed to parse published_at to timestamp")
+        log.warn(err)
 
     # Parsing 内容简介 (book introduction)
     book_intro_el = soup.select("#link-report")
@@ -120,7 +144,7 @@ def parse_book_info(source, url):
 
     # Parsing ratings
     rating_el = soup.select("#interest_sectl > div > div.rating_self.clearfix > strong")
-    rating = rating_el[0].contents[0].strip() if rating_el else ""
+    rating = rating_el[0].contents[0].strip() if rating_el else "0"
 
     rating_count_el = soup.select("#interest_sectl > div > div.rating_self.clearfix > div > div.rating_sum > span > a > span")
     rating_count = rating_count_el[0].contents[0] if rating_count_el else ""
@@ -128,85 +152,71 @@ def parse_book_info(source, url):
     # Parsing cover image
     cover_img_url = soup.select("#mainpic > a > img")[0].attrs["src"]
 
-    return [title, subtitle, author, publisher, published_at, price, isbn, pages, bookbinding, book_intro, author_intro, toc, rating, rating_count, cover_img_url, douban_book_id, douban_url]
-
-
-def _drain_tag(tag, args):
-    page = 0
-    page_size = 20
-    base_url = f"https://book.douban.com/tag/{quote(tag)}"
-    attempts = 0
-    max_attempts = 3
-
-
-    while(1):
-        log.info(f"attempting listings page {page + 1}")
-
-        url = f"{base_url}?start={page * page_size}&type=T"
-        source, _ = req(url)
-
-        attempts += 1
-        if source == None and attempts < max_attempts:
-            log.warn(f"failed to make request for page {page + 1}, will retry")
-            continue
-        else:
-            log.warn(f"failed to make request for page {page + 1}, exhausted and abort")
-            break
-
-        soup = BeautifulSoup(source, "html.parser")
-        book_list = soup.select("ul.subject-list > .subject-item")
-
-        if book_list == None and attempts < max_attempts:
-            log.warn(f"no books on page {page + 1}, will retry")
-            continue
-        elif book_list == None or len(book_list) <= 1:
-            log.warn(f"no books on page {page + 1}, exhausted and abort")
-            break
-
-        log.info(f"{len(book_list)} books found")
-        book_urls = list(map(lambda book_el: book_el.select('h2 > a')[0].get('href'), book_list))
-
-        with ThreadPoolExecutor() as tpool:
-            response_list = list(tpool.map(req, book_urls))
-
-        for book_source, book_url in response_list:
-            try:
-                book_row = parse_book_info(book_source, book_url)
-                _write_book_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}.csv"), [book_row])
-                # Reset attempts for a valid piece of book information
-                attempts = 0
-            except Exception as err:
-                log.error(err)
-                _write_failure_info(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}-failure.csv"), [[book_url]])
-        page += 1
+    return book_model({
+        'title': title,
+        'subtitle': subtitle,
+        'author': author,
+        'author_url': author_url,
+        'author_intro': author_intro,
+        'publisher': publisher,
+        'published_at': int(round(published_at_ts)),
+        'original_title': original_title,
+        'translator': translator,
+        'producer': producer,
+        'series': series,
+        'price': price,
+        'isbn': isbn,
+        'pages': int(pages),
+        'bookbinding': bookbinding,
+        'book_intro': book_intro,
+        'toc': toc,
+        'rating': float(rating),
+        'rating_count': int(rating_count),
+        'cover_img_url': cover_img_url,
+        'origin': 'douban',
+        'origin_id': douban_book_id,
+        'origin_url': douban_url,
+        'crawled': True,
+    })
 
 
 def _start(args):
-    df = pd.read_csv(args.input)
-    tags = df.name
-    log.info(f"read {tags.size} tags")
+    db_iterator = DB()
+    db_updater = DB()
+    with db_iterator.cursor(name="book_links") as cur:
+        query = "SELECT * FROM books WHERE crawled = false"
+        cur.execute(query)
 
-    for _, tag in tags.iteritems():
-        log.info(f"crawling tag {tag}...")
-        _write_headers(path.join(args.output, f"{pinyin.get_pinyin(tag, tone_marks='numbers')}.csv"))
-        _drain_tag(tag, args)
+        while True:
+            books_data = cur.fetchmany(size=3)
+            if not books_data:
+                log.info("no uncrawled books in database")
+                break
+            links = list(map(lambda r: r['origin_url'], books_data))
+            with ThreadPoolExecutor() as tpool:
+                log.info(f"requesting {len(links)} links...")
+                response_list = list(tpool.map(req, links))
+                log.info(f"parsing {len(response_list)} responses...")
+                books_data = list(tpool.map(lambda r: parse(r[0], r[1]), response_list))
+                books_data = list(filter(lambda r: r != None, books_data))
+                log.info(f"parsed {len(books_data)} books")
 
+            try:
+                db_updater.update_books_by_url(books_data)
+                log.info(f"updated {len(books_data)} books")
+            except Exception as err:
+                db_updater.rollback()
+                log.error("failed to update books")
+                log.error(err)
+
+            if DEBUG:
+                time.sleep(np.random.rand()*5)
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(
-        description="Crawl book information from douban.com based on a CSV of tags. You can generate a CSV of tags with 'get_tags'."
-    )
-    parser.add_argument(
-        "-i", "--input", required=True, help="Path to the input CSV file"
-    )
-    parser.add_argument(
-        "-o", "--output", required=True, help="Path to the output directory"
+        description="Crawl book information from douban.com from a given list of links."
     )
     args = parser.parse_args(raw_args)
-
-    if get_count() == 0:
-        log.error("proxy pool is empty, mission aborted")
-        return
 
     _start(args)
 

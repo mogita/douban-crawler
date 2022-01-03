@@ -1,16 +1,50 @@
 import requests
 import time
-import numpy as np
 import logging
+from os import path, environ as env
+from dotenv import load_dotenv
 from src.ua import get_a_random_ua
-from src.proxy_pool import get_proxy, delete_proxy
+from src.proxy_pool import get_proxy, delete_proxy, get_count
 
 log = logging.getLogger(__name__)
+
+load_dotenv()
+w_proxy = False if env.get("WITHOUT_PROXY") == "yes" else True
 
 rejected_proxies = {}
 MAX_REJECTED = 5
 
+
 def req(url):
+    if w_proxy == True:
+        assert get_count() > 0, "proxy pool is empty, cannot make proxied requests for now"
+        return _make_req_with_proxy(url)
+    else:
+        return _make_req(url)
+
+
+def batch_req(urls = []):
+    for url in urls:
+        yield req(url)
+
+
+def _make_req(url):
+    retry_count = 5
+    source = None
+
+    while retry_count > 0:
+        time.sleep(0.1)
+        try:
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()})
+            source = resp.text
+            break
+        except requests.exceptions.RequestException as err:
+            retry_count -= 1
+
+    return source, url
+
+
+def _make_req_with_proxy(url):
     retry_count = 5
     proxy = next_proxy()
     source = None
@@ -19,7 +53,7 @@ def req(url):
         log.error(f"proxy is none while fetching {url}")
 
     while retry_count > 0 and proxy != None:
-        time.sleep(np.random.rand()*5)
+        time.sleep(0.1)
         try:
             proxies = {"http": f"http://{proxy}"}
             resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies=proxies)
@@ -33,10 +67,6 @@ def req(url):
     return source, url
 
 
-def batch_req(urls = []):
-    for url in urls:
-        yield req(url)
-
 def next_proxy():
     retry_count = 10
     while retry_count > 0:
@@ -46,6 +76,7 @@ def next_proxy():
         else:
             retry_count -= 1
     return None
+
 
 def reject_proxy(proxy):
     if proxy not in rejected_proxies:

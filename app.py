@@ -1,15 +1,19 @@
 from importlib import import_module
+from os import environ as env
+from dotenv import load_dotenv
 import sys
 import logging
 import traceback
 
+load_dotenv()
+debug_mode = True if env.get("DEBUG") == "yes" else False
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s.%(msecs)03d - %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-logging.root.setLevel(logging.INFO)
+logging.root.setLevel(logging.DEBUG if debug_mode else logging.INFO)
 
 
 def main():
