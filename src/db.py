@@ -134,7 +134,7 @@ class DB:
         self.connection.commit()
 
     def get_tags(self, batch_count=None):
-        query = "SELECT * FROM public.tags",
+        query = "SELECT * FROM public.tags"
         if batch_count != None:
             if batch_count <= 0:
                 batch_count = 5
