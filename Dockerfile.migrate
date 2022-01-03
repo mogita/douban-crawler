@@ -1,6 +1,8 @@
 FROM golang:1.16-alpine3.13 AS builder
 ARG VERSION
 
+RUN set -eux && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+
 RUN apk add --no-cache git gcc musl-dev make
 
 WORKDIR /go/src/github.com/golang-migrate/migrate
