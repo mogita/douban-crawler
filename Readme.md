@@ -21,7 +21,13 @@ This crawler depends on the [proxy_pool](https://github.com/jhao104/proxy_pool) 
 ZHIMA_PROXY_URL="https://..."
 ```
 
-2. Build and start
+2. Pull the submodules
+
+```bash
+git submodule update --init --recursive
+```
+
+3. Build and start
 
 ```bash
 # Start the proxy_pool containers first, and you might want to wait for a while

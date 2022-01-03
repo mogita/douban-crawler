@@ -4,4 +4,6 @@ RUN wget https://github.com.cnpmjs.org/golang-migrate/migrate/releases/download/
 RUN tar -xvf migrate.linux-amd64.tar.gz -C /usr/local/bin
 RUN chmod a+x /usr/local/bin/migrate
 
+RUN chmod a+x /root/migrate.sh
+
 CMD ["/wait-for-it/wait-for-it.sh", "douban-crawler-db:5432", "--", "/root/migrate.sh"]
