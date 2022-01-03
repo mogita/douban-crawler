@@ -188,7 +188,7 @@ def _start(args):
         cur.execute(query)
 
         while True:
-            books_data = cur.fetchmany(size=20)
+            books_data = cur.fetchmany(size=3)
             if not books_data:
                 log.info("no uncrawled books in database")
                 break
