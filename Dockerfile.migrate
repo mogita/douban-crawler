@@ -1,9 +1,22 @@
 FROM python:3.8-bullseye
 
+# Comment the following line if you don't need an alternative debian software source
+RUN sed -i "s@http://deb.debian.org@http://mirrors.aliyun.com@g" /etc/apt/sources.list && rm -Rf /var/lib/apt/lists/* && apt-get update
+RUN apt-get update
+RUN apt-get install -y git
+
+WORKDIR /app
+
 RUN wget https://github.com.cnpmjs.org/golang-migrate/migrate/releases/download/v4.15.1/migrate.linux-amd64.tar.gz -O migrate.linux-amd64.tar.gz
 RUN tar -xvf migrate.linux-amd64.tar.gz -C /usr/local/bin
 RUN chmod a+x /usr/local/bin/migrate
 
-RUN chmod a+x /root/migrate.sh
+RUN git clone https://github.com.cnpmjs.org/vishnubob/wait-for-it.git /wait-for-it
+RUN chmod a+x /wait-for-it/wait-for-it.sh
 
-CMD ["/wait-for-it/wait-for-it.sh", "douban-crawler-db:5432", "--", "/root/migrate.sh"]
+COPY migrate.sh /app/migrate.sh
+RUN chmod a+x /app/migrate.sh
+
+COPY migrations /app/migrations
+
+CMD ["/wait-for-it/wait-for-it.sh", "douban-crawler-db:5432", "--", "/app/migrate.sh"]
