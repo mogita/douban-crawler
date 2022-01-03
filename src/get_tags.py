@@ -1,3 +1,4 @@
+import time
 import logging
 import argparse
 from bs4 import BeautifulSoup
@@ -14,24 +15,29 @@ def main(raw_args=None):
     )
     args = parser.parse_args(raw_args)
 
-    url = "https://book.douban.com/tag/"
+    urls = [
+        "https://book.douban.com/tag/?view=type",
+        "https://book.douban.com/tag/?view=cloud"
+    ]
 
-    source, _ = req(url)
-    soup = BeautifulSoup(source, "html.parser")
-    tags = list(map(lambda r: [r.select("a")[0].contents[0]], soup.findAll("td")))
+    for url in urls:
+        source, _ = req(url)
+        soup = BeautifulSoup(source, "html.parser")
+        tags = list(map(lambda r: [r.select("a")[0].contents[0]], soup.findAll("td")))
 
-    tag_models = list(map(lambda r: tag_model({'name': r[0]}), tags))
-    log.debug(tag_models)
+        tag_models = list(map(lambda r: tag_model({'name': r[0]}), tags))
+        log.debug(tag_models)
 
-    # save tags to db
-    try:
-        db = DB()
-        db.insert_tags(tag_models)
-        log.info(f"saved {len(tag_models)} tags to db")
-    except Exception as err:
-        log.error("failed to save the tags to db")
-        log.error(err)
+        # save tags to db
+        try:
+            log.info(f"saving {len(tag_models)} tags to database...")
+            db = DB()
+            db.insert_tags(tag_models)
+        except Exception as err:
+            log.error("failed to save the tags to database")
+            log.error(err)
 
+        time.sleep(np.random.rand()*5)
 
 
 if __name__ == "__main__":

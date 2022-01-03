@@ -21,7 +21,7 @@ def _get_book_links_from_tag(tag_data):
     max_attempts = 3
 
     while(1):
-        log.info(f"attempting on page {page}")
+        log.info(f"attempting on page {page} for tag {tag}")
 
         time.sleep(np.random.rand()*5)
 
@@ -71,7 +71,7 @@ def _get_book_links_from_tag(tag_data):
 
 
 def _start():
-    tags = db.get_tags(1)
+    tags = db.get_tags()
     log.info(f"read {len(tags)} tags")
 
     for tag in tags:

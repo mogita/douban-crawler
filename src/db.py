@@ -133,14 +133,15 @@ class DB:
         )
         self.connection.commit()
 
-    def get_tags(self, batch_count=5):
-        if batch_count < 0:
-            batch_count = 5
+    def get_tags(self, batch_count):
+        query = "SELECT * FROM public.tags",
+        if batch_count != None:
+            if batch_count <= 0:
+                batch_count = 5
+            query += f" LIMIT {batch_count}"
+
         cur = self.cursor(cursor_factory=RealDictCursor)
-        cur.execute(
-            """SELECT * FROM public.tags LIMIT %s""",
-            (batch_count,),
-        )
+        cur.execute(query)
         return cur.fetchall()
 
     def insert_tags(self, tags=[]):
