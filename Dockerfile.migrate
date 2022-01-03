@@ -1,26 +1,10 @@
-FROM golang:1.16-alpine3.13 AS builder
-ARG VERSION
+FROM python:3.8-bullseye
 
-RUN set -eux && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+RUN sed -i "s@http://deb.debian.org@http://mirrors.aliyun.com@g" /etc/apt/sources.list && rm -Rf /var/lib/apt/lists/* && apt-get update
 
-RUN apk add --no-cache git gcc musl-dev make
+RUN curl -L https://packagecloud.io/golang-migrate/migrate/gpgkey | apt-key add -
+RUN echo "deb https://packagecloud.io/golang-migrate/migrate/ubuntu/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/migrate.list
+RUN apt-get update
+RUN apt-get install -y make automake gcc g++ subversion python3-dev
 
-WORKDIR /go/src/github.com/golang-migrate/migrate
-
-ENV GO111MODULE=on
-
-COPY go.mod go.sum ./
-
-RUN go mod download
-
-COPY . ./
-
-RUN make build-docker
-
-FROM alpine:3.13
-
-RUN apk add --no-cache ca-certificates
-
-COPY --from=builder /go/src/github.com/golang-migrate/migrate/build/migrate.linux-386 /usr/local/bin/migrate
-RUN ln -s /usr/local/bin/migrate /migrate
-
+CMD ["/wait-for-it/wait-for-it.sh", "douban-crawler-db:5432", "--", "/root/migrate.sh"]
