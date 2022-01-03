@@ -50,9 +50,8 @@ PROXY_FETCHER = [
 
 # ############# proxy validator #################
 # 代理验证目标网站
-HTTP_URL = "http://httpbin.org"
-
-HTTPS_URL = "https://www.qq.com"
+HTTP_URL = "http://www.baidu.com"
+HTTPS_URL = "https://www.baidu.com"
 
 # 代理验证时超时时间
 VERIFY_TIMEOUT = 3
@@ -64,7 +63,7 @@ MAX_FAIL_COUNT = 3
 # MAX_FAIL_RATE = 0.1
 
 # proxyCheck时代理数量少于POOL_SIZE_MIN触发抓取
-POOL_SIZE_MIN = 10
+POOL_SIZE_MIN = 5
 
 # ############# scheduler config #################
 
