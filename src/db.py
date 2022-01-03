@@ -13,48 +13,52 @@ db_name = env.get("DB_NAME")
 
 class DB:
     def __init__(self):
-        self.conn = psycopg2.connect(
+        self.connection = psycopg2.connect(
             host=db_host, database=db_name, user=db_user, password=db_pass,
         )
-        self.cur = self.conn.cursor()
 
     def get_book_by_id(self, id=""):
         if id == "":
             return None
-        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur = self.cursor(cursor_factory=RealDictCursor)
         cur.execute(
             """SELECT * FROM public.books WHERE id = %s""",
             (id,),
         )
         return cur.fetchone()
 
-    def get_uncrawled_books(self, batch_count=5):
+    def get_uncrawled_books(self, batch_count=5, cur=None):
+        if cur == None:
+            cur = self.cursor(cursor_factory=RealDictCursor)
         if batch_count < 0:
             batch_count = 5
-        cur = self.conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
-            """SELECT * FROM public.books WHERE crawled = False LIMIT %s""",
-            (batch_count,),
+            """SELECT * FROM public.books WHERE crawled = false""",
         )
-        return cur.fetchall()
+        return cur.fetchmany(size=batch_count)
 
     def insert_books(self, books=[]):
         if len(books) == 0:
             return None
         execute_values(
-            self.cur,
+            self.cursor(),
             """INSERT INTO public.books (
                 title,
                 subtitle,
                 author,
+                author_url,
+                author_intro,
                 publisher,
                 published_at,
+                original_title,
+                translator,
+                producer,
+                series,
                 price,
                 isbn,
                 pages,
                 bookbinding,
                 book_intro,
-                author_intro,
                 toc,
                 rating,
                 rating_count,
@@ -67,47 +71,55 @@ class DB:
             ON CONFLICT DO NOTHING""",
             books
         )
-        self.conn.commit()
+        self.connection.commit()
 
-    def update_books(self, books=[]):
+    def update_books_by_url(self, books=[]):
         if len(books) == 0:
             return None
         execute_values(
-            self.cur,
+            self.cursor(),
             """UPDATE public.books SET
                 title = data.title,
                 subtitle = data.subtitle,
                 author = data.author,
+                author_url = data.author_url,
+                author_intro = data.author_intro,
                 publisher = data.publisher,
-                published_at = data.published_at,
+                published_at = to_timestamp(data.published_at),
+                original_title = data.original_title,
+                translator = data.translator,
+                producer = data.producer,
+                series = data.series,
                 price = data.price,
                 isbn = data.isbn,
                 pages = data.pages,
                 bookbinding = data.bookbinding,
                 book_intro = data.book_intro,
-                author_intro = data.author_intro,
                 toc = data.toc,
                 rating = data.rating,
                 rating_count = data.rating_count,
                 cover_img_url = data.cover_img_url,
                 origin = data.origin,
                 origin_id = data.origin_id,
-                origin_url = data.origin_url,
-                crawled = data.crawled,
+                crawled = true,
                 updated_at = (now() at time zone 'utc')
             FROM (VALUES %s) AS data (
-                id,
                 title,
                 subtitle,
                 author,
+                author_url,
+                author_intro,
                 publisher,
                 published_at,
+                original_title,
+                translator,
+                producer,
+                series,
                 price,
                 isbn,
                 pages,
                 bookbinding,
                 book_intro,
-                author_intro,
                 toc,
                 rating,
                 rating_count,
@@ -116,15 +128,15 @@ class DB:
                 origin_id,
                 origin_url,
                 crawled
-            ) WHERE books.id = data.id""",
+            ) WHERE books.origin_url = data.origin_url""",
             books
         )
-        self.conn.commit()
+        self.connection.commit()
 
     def get_tags(self, batch_count=5):
         if batch_count < 0:
             batch_count = 5
-        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        cur = self.cursor(cursor_factory=RealDictCursor)
         cur.execute(
             """SELECT * FROM public.tags LIMIT %s""",
             (batch_count,),
@@ -135,7 +147,7 @@ class DB:
         if len(tags) == 0:
             return None
         execute_values(
-            self.cur,
+            self.cursor(),
             """INSERT INTO tags (
                 name,
                 current_page
@@ -143,14 +155,14 @@ class DB:
             ON CONFLICT DO NOTHING""",
             tags
         )
-        self.conn.commit()
+        self.connection.commit()
 
     def update_tags(self, tags=[]):
         if len(tags) == 0:
             return None
         log.debug(tags)
         execute_values(
-            self.cur,
+            self.cursor(),
             """UPDATE public.tags SET
                 name = data.name,
                 current_page = data.current_page,
@@ -162,16 +174,18 @@ class DB:
             ) WHERE tags.id = data.id""",
             tags
         )
-        self.conn.commit()
+        self.connection.commit()
 
-    def cursor(self):
-        return self.cur
+    def cursor(self, name=None, cursor_factory=RealDictCursor):
+        return self.connection.cursor(name=name, cursor_factory=cursor_factory)
 
     def conn(self):
-        return self.conn
+        return self.connection
+
+    def rollback(self):
+        return self.connection.rollback()
 
     def close(self):
-        if self.conn:
-            self.cur.close()
-            self.conn.close()
+        if self.connection:
+            self.connection.close()
 

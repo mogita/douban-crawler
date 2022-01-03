@@ -12,7 +12,6 @@ log = logging.getLogger(__name__)
 
 db = DB()
 
-
 def _get_book_links_from_tag(tag_data):
     tag = tag_data['name']
     page = tag_data['current_page']
@@ -58,6 +57,7 @@ def _get_book_links_from_tag(tag_data):
             db.insert_books(book_data)
             log.info(f"saved {len(book_data)} books for tag {tag} on page {page}")
         except Exception as err:
+            db.rollback()
             log.error(f"failed to save book links for tag {tag} on page {page}")
             log.error(err)
 
@@ -65,7 +65,8 @@ def _get_book_links_from_tag(tag_data):
         try:
             db.update_tags([tag_model({'id': tag_data['id'], 'name': tag, 'current_page': page})])
         except Exception as err:
-            log.error("failed to update tag {tag}")
+            db.rollback()
+            log.error(f"failed to update tag {tag}")
             log.error(err)
 
 
