@@ -35,7 +35,9 @@ services:
 
   migration:
     container_name: douban-crawler-migration
-    image: migrate/migrate
+    build:
+      dockerfile: Dockerfile.migrate
+      context: "."
     depends_on:
       - db
     command:
