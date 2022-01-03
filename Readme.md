@@ -15,19 +15,36 @@ This crawler depends on the [proxy_pool](https://github.com/jhao104/proxy_pool) 
 
 ## Steps
 
+### Without the Proxy Pool
+
+1. Create a `.env` file under the project root and add the following line:
+
+```bash
+WITHOUT_PROXY=yes
+```
+
+2. Build and start
+
+```bash
+# You can add `--no-cache` to always build a clean image
+docker-compose build
+
+# You can add `--force-recreate` if you want to drop the container even when 
+# the configuration or the image hasn't changed.
+docker-compose up -d
+```
+
+> Not using proxies might lead to 403 error responses from the source site.
+
+### With the Proxy Pool
+
 1. Free IPs just don't work most of the time. It's highly recommended that you choose a payed proxy provider and tweak the code under `proxy_pool` directory to override the functionality and suit your needs. Take Zhima (芝麻) HTTP Proxy for example, create a `.env` file and put the API endpoint into it:
 
 ```env
 ZHIMA_PROXY_URL="https://..."
 ```
 
-2. Pull the submodules
-
-```bash
-git submodule update --init --recursive
-```
-
-3. Build and start
+2. Build and start
 
 ```bash
 # Start the proxy_pool containers first, and you might want to wait for a while
