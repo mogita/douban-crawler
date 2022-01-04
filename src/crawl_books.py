@@ -45,7 +45,7 @@ def parse(source, url):
     meta_list_colon_aligned = []
     for idx, val in enumerate(meta_list_raw):
         if val == ":" and len(meta_list_colon_aligned) > 0:
-            meta_list_colon_aligned[idx - 1] += val
+            meta_list_colon_aligned[len(meta_list_colon_aligned) - 1] += val
         else:
             meta_list_colon_aligned.append(val)
 
