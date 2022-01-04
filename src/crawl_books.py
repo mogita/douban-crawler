@@ -110,6 +110,7 @@ def parse(source, url):
                 int(published_at_split[1] if len(published_at_split) >= 2 else "1"),
                 int(published_at_split[2] if len(published_at_split) >= 3 else "1"),
             ).timestamp()
+            published_at_ts = int(round(published_at_ts))
         except Exception as err:
             log.warn("failed to parse published_at to timestamp")
             log.warn(err)
@@ -165,7 +166,7 @@ def parse(source, url):
         'author_url': author_url,
         'author_intro': author_intro,
         'publisher': publisher,
-        'published_at': int(round(published_at_ts)),
+        'published_at': published_at_ts,
         'original_title': original_title,
         'translator': translator,
         'producer': producer,
