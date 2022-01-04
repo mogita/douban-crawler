@@ -20,8 +20,7 @@ from src.model import book_model
 log = logging.getLogger(__name__)
 
 load_dotenv()
-DEBUG = True if env.get("DEBUG") == "yes" else False
-
+W_PROXY = False if env.get("WITHOUT_PROXY") == "yes" else True
 
 
 def parse(source, url):
@@ -66,7 +65,6 @@ def parse(source, url):
     # Remove white characters and continuous spaces inside each element
     meta_list = list(map(lambda r: r.replace("\n", ""), meta_list))
     meta_list = list(map(lambda r: re.sub(' +', ' ', r), meta_list))
-    log.debug(meta_list)
 
     douban_url = url
 
@@ -209,7 +207,8 @@ def _start(args):
                 log.error("failed to update books")
                 log.error(err)
 
-            if DEBUG:
+            if not W_PROXY:
+                # Handle random sleep when not using a proxy pool
                 time.sleep(np.random.rand()*5)
 
 def main(raw_args=None):
