@@ -93,7 +93,7 @@ def parse(source, url):
 
     price = meta_list[meta_list.index('定价:') + 1] if '定价:' in meta_list else ''
     isbn = meta_list[meta_list.index('ISBN:') + 1]  if 'ISBN:' in meta_list else ''
-    pages = meta_list[meta_list.index('页数:') + 1] if '页数:' in meta_list else ''
+    pages = meta_list[meta_list.index('页数:') + 1] if '页数:' in meta_list else '0'
     bookbinding = meta_list[meta_list.index('装帧:') + 1] if '装帧:' in meta_list else ''
 
     publisher = meta_list[meta_list.index('出版社:') + 1] if '出版社:' in meta_list else ''
@@ -147,7 +147,7 @@ def parse(source, url):
     rating = rating_el[0].contents[0].strip() if rating_el else "0"
 
     rating_count_el = soup.select("#interest_sectl > div > div.rating_self.clearfix > div > div.rating_sum > span > a > span")
-    rating_count = rating_count_el[0].contents[0] if rating_count_el else ""
+    rating_count = rating_count_el[0].contents[0] if rating_count_el else "0"
 
     # Parsing cover image
     cover_img_url = soup.select("#mainpic > a > img")[0].attrs["src"]
