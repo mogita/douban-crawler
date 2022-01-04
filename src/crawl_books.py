@@ -100,6 +100,9 @@ def parse(source, url):
     # convert "published_at" into a valid timestamp
     published_at_ts = None
     try:
+        # Some(times) are represented as 2018.12 so we need to align the format first
+        published_at = published_at.replace(".", "-")
+
         published_at_split = published_at.split("-")
         published_at_ts = datetime(
             int(published_at_split[0] if len(published_at_split) >= 1 else "2"),
