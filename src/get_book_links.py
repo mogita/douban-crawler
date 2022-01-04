@@ -49,6 +49,12 @@ def _get_book_links_from_tag(tag_data):
             continue
         elif book_list == None or len(book_list) <= 1:
             log.warn(f"no books on page {page}, exhausted and abort")
+            try:
+                db.update_tags([tag_model({'id': tag_data['id'], 'name': tag, 'current_page': page, 'exhausted': True})])
+            except Exception as err:
+                db.rollback()
+                log.error(f"failed to update tag {tag} to exhausted")
+                log.error(err)
             break
 
         book_urls = list(map(lambda book_el: book_el.select('h2 > a')[0].get('href'), book_list))
@@ -77,6 +83,8 @@ def _start():
     for tag in tags:
         log.info(f"getting links from tag {tag['name']}...")
         _get_book_links_from_tag(tag)
+
+    log.info("all tags exhausted")
 
 
 def main(raw_args=None):

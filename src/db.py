@@ -134,7 +134,7 @@ class DB:
         self.connection.commit()
 
     def get_tags(self, batch_count=None):
-        query = "SELECT * FROM public.tags ORDER BY id"
+        query = "SELECT * FROM public.tags WHERE exhausted = FALSE ORDER BY id"
         if batch_count != None:
             if batch_count <= 0:
                 batch_count = 5
@@ -167,11 +167,13 @@ class DB:
             """UPDATE public.tags SET
                 name = data.name,
                 current_page = data.current_page,
+                exhausted = data.exhausted,
                 updated_at = (now() at time zone 'utc')
             FROM (VALUES %s) AS data (
                 id,
                 name,
-                current_page
+                current_page,
+                exhausted
             ) WHERE tags.id = data.id""",
             tags
         )
