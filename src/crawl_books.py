@@ -99,19 +99,20 @@ def parse(source, url):
 
     # convert "published_at" into a valid timestamp
     published_at_ts = None
-    try:
-        # Some(times) are represented as 2018.12 so we need to align the format first
-        published_at = published_at.replace(".", "-")
+    if published_at != "":
+        try:
+            # Some(times) are represented as 2018.12 so we need to align the format first
+            published_at = published_at.replace(".", "-")
 
-        published_at_split = published_at.split("-")
-        published_at_ts = datetime(
-            int(published_at_split[0] if len(published_at_split) >= 1 else "2"),
-            int(published_at_split[1] if len(published_at_split) >= 2 else "1"),
-            int(published_at_split[2] if len(published_at_split) >= 3 else "1"),
-        ).timestamp()
-    except Exception as err:
-        log.warn("failed to parse published_at to timestamp")
-        log.warn(err)
+            published_at_split = published_at.split("-")
+            published_at_ts = datetime(
+                int(published_at_split[0] if len(published_at_split) >= 1 else "2"),
+                int(published_at_split[1] if len(published_at_split) >= 2 else "1"),
+                int(published_at_split[2] if len(published_at_split) >= 3 else "1"),
+            ).timestamp()
+        except Exception as err:
+            log.warn("failed to parse published_at to timestamp")
+            log.warn(err)
 
     # Parsing 内容简介 (book introduction)
     book_intro_el = soup.select("#link-report")
