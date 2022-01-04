@@ -146,9 +146,13 @@ def parse(source, url):
     # Parsing ratings
     rating_el = soup.select("#interest_sectl > div > div.rating_self.clearfix > strong")
     rating = rating_el[0].contents[0].strip() if rating_el else "0"
+    if rating == "":
+        rating = "0"
 
     rating_count_el = soup.select("#interest_sectl > div > div.rating_self.clearfix > div > div.rating_sum > span > a > span")
     rating_count = rating_count_el[0].contents[0] if rating_count_el else "0"
+    if rating_count == "":
+        rating_count = "0"
 
     # Parsing cover image
     cover_img_url = soup.select("#mainpic > a > img")[0].attrs["src"]
