@@ -171,7 +171,7 @@ def parse(source, url):
         'series': series,
         'price': price,
         'isbn': isbn,
-        'pages': int(pages),
+        'pages': pages,
         'bookbinding': bookbinding,
         'book_intro': book_intro,
         'toc': toc,

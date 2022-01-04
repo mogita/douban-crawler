@@ -13,7 +13,7 @@ def book_model(attrs):
         attrs['series'] if 'series' in attrs else "",
         attrs['price'] if 'price' in attrs else "",
         attrs['isbn'] if 'isbn' in attrs else "",
-        attrs['pages'] if 'pages' in attrs else 0,
+        attrs['pages'] if 'pages' in attrs else "0",
         attrs['bookbinding'] if 'bookbinding' in attrs else "",
         attrs['book_intro'] if 'book_intro' in attrs else "",
         attrs['toc'] if 'toc' in attrs else "",
