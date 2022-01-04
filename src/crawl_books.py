@@ -118,12 +118,13 @@ def parse(source, url):
     # Parsing 内容简介 (book introduction)
     book_intro_el = soup.select("#link-report")
     book_intro = ""
-    if book_intro_el[0].select("span.short") and book_intro_el[0].select("span.all"):
-        book_intro = book_intro_el[0].select(".intro")[1].contents
-    else:
-        book_intro = book_intro_el[0].select(".intro")[0].contents
-    book_intro = list(map(lambda line: str(line), book_intro))
-    book_intro = "".join(filter(lambda line: line != "\n" and line != " ", book_intro)).strip()
+    if book_intro_el:
+        if book_intro_el[0].select("span.short") and book_intro_el[0].select("span.all"):
+            book_intro = book_intro_el[0].select(".intro")[1].contents
+        else:
+            book_intro = book_intro_el[0].select(".intro")[0].contents
+        book_intro = list(map(lambda line: str(line), book_intro))
+        book_intro = "".join(filter(lambda line: line != "\n" and line != " ", book_intro)).strip()
 
     # Parsing 作者简介 (author introduction)
     author_title_el = soup.find("span", string="作者简介")
