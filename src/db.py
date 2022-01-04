@@ -151,7 +151,8 @@ class DB:
             self.cursor(),
             """INSERT INTO tags (
                 name,
-                current_page
+                current_page,
+                exhausted
             ) VALUES %s
             ON CONFLICT DO NOTHING""",
             tags
