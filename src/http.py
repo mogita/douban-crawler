@@ -49,13 +49,16 @@ def _make_req_with_proxy(url):
     proxy = next_proxy()
     source = None
 
-    if proxy == None:
-        log.error(f"proxy is none while fetching {url}")
+    assert proxy != None, f"proxy is none while fetching {url}"
 
     while retry_count > 0 and proxy != None:
         time.sleep(0.1)
         try:
-            proxies = {"http": f"http://{proxy}"}
+            log.debug(f"using proxy {proxy}")
+            proxies = {
+                "http": f"http://{proxy}",
+                "https": f"http://{proxy}"
+            }
             resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies=proxies)
             source = resp.text
             break

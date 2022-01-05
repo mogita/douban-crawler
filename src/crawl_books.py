@@ -217,9 +217,7 @@ def _start(args):
                 log.error("failed to update books")
                 log.error(err)
 
-            if not W_PROXY:
-                # Handle random sleep when not using a proxy pool
-                time.sleep(np.random.rand()*5)
+            time.sleep(np.random.rand()*5)
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(
