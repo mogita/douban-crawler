@@ -72,9 +72,12 @@ def parse(source, url):
     douban_url = url
 
     # Parsing a bunch of meta info
-    title = soup.select("#wrapper > h1 > span")[0].contents[0]
-    subtitle = meta_list[meta_list.index("副标题:") + 1] if "副标题:" in meta_list else ""
+    title = ""
+    title_el = soup.select("#wrapper > h1 > span")
+    if title_el:
+        title = title_el[0].contents[0]
 
+    subtitle = meta_list[meta_list.index("副标题:") + 1] if "副标题:" in meta_list else ""
     author = meta_list[meta_list.index("作者:") + 1] if "作者:" in meta_list else ""
 
     author_url = ""
