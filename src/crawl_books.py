@@ -103,6 +103,12 @@ def parse(source, url):
         try:
             # Some(times) are represented as 2018.12 so we need to align the format first
             published_at = published_at.replace(".", "-")
+            # Some(times) are represented as 2018年4月
+            published_at = published_at.replace("年", "-")
+            published_at = published_at.replace("月", "-")
+            published_at = published_at.replace("日", "-")
+            if published_at.endswith("-"):
+                published_at = published_at[:-1]
 
             published_at_split = published_at.split("-")
             published_at_ts = datetime(
