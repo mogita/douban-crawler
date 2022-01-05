@@ -16,6 +16,6 @@ def get_count():
     else:
         try:
             resp_json = resp.json()
-            return resp_json["count"]["total"] if "count" in resp else 0
+            return resp_json["count"]["total"] if "count" in resp_json else 0
         except:
             return 0
