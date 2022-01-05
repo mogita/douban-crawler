@@ -20,7 +20,7 @@ from src.model import book_model
 log = logging.getLogger(__name__)
 
 load_dotenv()
-W_PROXY = False if env.get("WITHOUT_PROXY") == "yes" else True
+BATCH_SIZE = env.get("BATCH_SIZE", 3)
 
 
 def parse(source, url):
@@ -202,7 +202,7 @@ def _start(args):
         cur.execute(query)
 
         while True:
-            books_data = cur.fetchmany(size=3)
+            books_data = cur.fetchmany(size=int(BATCH_SIZE))
             if not books_data:
                 log.info("no uncrawled books in database")
                 break
