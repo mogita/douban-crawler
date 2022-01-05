@@ -24,6 +24,9 @@ BATCH_SIZE = env.get("BATCH_SIZE", 3)
 
 
 def parse(source, url):
+    if source == None:
+        return None
+
     soup = BeautifulSoup(source, 'html.parser')
 
     url_parts = urlsplit(url)
