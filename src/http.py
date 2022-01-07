@@ -35,7 +35,7 @@ def _make_req(url):
     while retry_count > 0:
         time.sleep(0.1)
         try:
-            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()})
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, timeout=10)
             source = resp.text
             break
         except requests.exceptions.RequestException as err:
@@ -59,7 +59,7 @@ def _make_req_with_proxy(url):
                 "http": f"http://{proxy}",
                 "https": f"http://{proxy}"
             }
-            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies=proxies)
+            resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies=proxies, timeout=10)
             source = resp.text
             break
         except requests.exceptions.RequestException as err:
