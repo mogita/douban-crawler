@@ -54,16 +54,16 @@ HTTP_URL = "http://www.baidu.com"
 HTTPS_URL = "https://www.baidu.com"
 
 # 代理验证时超时时间
-VERIFY_TIMEOUT = 3
+VERIFY_TIMEOUT = 10
 
 # 近PROXY_CHECK_COUNT次校验中允许的最大失败次数,超过则剔除代理
-MAX_FAIL_COUNT = 3
+MAX_FAIL_COUNT = 5
 
 # 近PROXY_CHECK_COUNT次校验中允许的最大失败率,超过则剔除代理
 # MAX_FAIL_RATE = 0.1
 
 # proxyCheck时代理数量少于POOL_SIZE_MIN触发抓取
-POOL_SIZE_MIN = 5
+POOL_SIZE_MIN = 2
 
 # ############# scheduler config #################
 
