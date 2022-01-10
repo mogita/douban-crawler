@@ -107,6 +107,14 @@ def parse(source, url):
     published_at_ts = None
     if published_at != "":
         try:
+            # Some(times) are represented as 10/8/2003
+            if published_at.count("/") == 2:
+                parts = published_at.split("/")
+                # Guess if last position is year, and swap to the first in the list
+                if len(parts) > 2 and int(parts[0]) < int(parts[2]):
+                    parts.insert(0, parts[2])
+                    del parts[3]
+                published_at = "-".join(parts)
             # Some(times) are represented as 2018.12 so we need to align the format first
             published_at = published_at.replace(".", "-")
             # Some(times) are represented as 2018年4月
