@@ -12,9 +12,22 @@ log = logging.getLogger(__name__)
 
 db = DB()
 
-def _get_book_links_from_tag(tag_data):
+
+def _get_book_links_from_tag_by_default(tag_data):
+    _get_book_links_from_tag(tag_data, "t")
+
+
+def _get_book_links_from_tag_by_publish_date(tag_data):
+    _get_book_links_from_tag(tag_data, "r")
+
+
+def _get_book_links_from_tag_by_rate(tag_data):
+    _get_book_links_from_tag(tag_data, "s")
+
+
+def _get_book_links_from_tag(tag_data, type_value):
     tag = tag_data['name']
-    page = tag_data['current_page']
+    page = tag_data[f'current_page_{type_value}']
     page_size = 20
     base_url = f"https://book.douban.com/tag/{quote(tag)}"
     attempts = 0
@@ -25,7 +38,7 @@ def _get_book_links_from_tag(tag_data):
 
         time.sleep(np.random.rand()*5)
 
-        url = f"{base_url}?start={page * page_size}&type=T"
+        url = f"{base_url}?start={page * page_size}&type={type_value.upper()}"
         source = None
         try:
             source, _ = req(url)
@@ -35,10 +48,10 @@ def _get_book_links_from_tag(tag_data):
         attempts += 1
         if source == None:
             if attempts< max_attempts:
-                log.warn(f"failed to fetch page {page} for tag {tag}, will retry")
+                log.warn(f"failed to fetch page {page} for tag {tag} {type_value.upper()}, will retry")
                 continue
             else:
-                log.warn(f"failed to fetch page {page} for tag {tag}, exhausted and abort")
+                log.warn(f"failed to fetch page {page} for tag {tag} {type_value.upper()}, exhausted and abort")
                 break
 
         soup = BeautifulSoup(source, "html.parser")
@@ -50,10 +63,12 @@ def _get_book_links_from_tag(tag_data):
         elif book_list == None or len(book_list) <= 1:
             log.warn(f"no books on page {page}, exhausted and abort")
             try:
-                db.update_tags([tag_model({'id': tag_data['id'], 'name': tag, 'current_page': page, 'exhausted': True})])
+                tag_data[f'current_page_{type_value}'] = page
+                tag_data[f'exhausted_{type_value}'] = True
+                db.update_tags([tag_model(tag_data)])
             except Exception as err:
                 db.rollback()
-                log.error(f"failed to update tag {tag} to exhausted")
+                log.error(f"failed to update tag {tag} {type_value.upper()} to exhausted")
                 log.error(err)
             break
 
@@ -61,18 +76,19 @@ def _get_book_links_from_tag(tag_data):
         book_data = list(map(lambda link: book_model({ 'origin_url': link }), book_urls))
         try:
             db.insert_books(book_data)
-            log.info(f"saved {len(book_data)} books for tag {tag} on page {page}")
+            log.info(f"saved {len(book_data)} books for tag {tag} {type_value.upper()} on page {page}")
         except Exception as err:
             db.rollback()
-            log.error(f"failed to save book links for tag {tag} on page {page}")
+            log.error(f"failed to save book links for tag {tag} {type_value.upper()} on page {page}")
             log.error(err)
 
         page += 1
         try:
-            db.update_tags([tag_model({'id': tag_data['id'], 'name': tag, 'current_page': page})])
+            tag_data[f'current_page_{type_value}'] = page
+            db.update_tags([tag_model(tag_data)])
         except Exception as err:
             db.rollback()
-            log.error(f"failed to update tag {tag}")
+            log.error(f"failed to update tag {tag} {type_value.upper()}")
             log.error(err)
 
 
@@ -81,8 +97,14 @@ def _start():
     log.info(f"read {len(tags)} tags")
 
     for tag in tags:
-        log.info(f"getting links from tag {tag['name']}...")
-        _get_book_links_from_tag(tag)
+        log.info(f"getting links from tag {tag['name']} by default sorting...")
+        _get_book_links_from_tag_by_default(tag)
+
+        log.info(f"getting links from tag {tag['name']} by publish date sorting...")
+        _get_book_links_from_tag_by_publish_date(tag)
+
+        log.info(f"getting links from tag {tag['name']} by rate sorting...")
+        _get_book_links_from_tag_by_rate(tag)
 
     log.info("all tags exhausted")
 

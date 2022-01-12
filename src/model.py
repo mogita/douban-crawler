@@ -32,8 +32,12 @@ def book_model(attrs):
 def tag_model(attrs):
     data = (
         attrs['name'] if 'name' in attrs else '',
-        attrs['current_page'] if 'current_page' in attrs else 1,
-        attrs['exhausted'] if 'exhausted' in attrs else False
+        attrs['current_page_t'] if 'current_page_t' in attrs else 1,
+        attrs['current_page_r'] if 'current_page_r' in attrs else 1,
+        attrs['current_page_s'] if 'current_page_s' in attrs else 1,
+        attrs['exhausted_t'] if 'exhausted_t' in attrs else False,
+        attrs['exhausted_r'] if 'exhausted_r' in attrs else False,
+        attrs['exhausted_s'] if 'exhausted_s' in attrs else False
     )
     if 'id' in attrs and attrs['id'] > 0:
         data = (attrs['id'],) + data

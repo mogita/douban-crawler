@@ -1,0 +1,3 @@
+ALTER TABLE IF EXISTS tags RENAME COLUMN exhausted_t TO exhausted;
+ALTER TABLE IF EXISTS tags DROP COLUMN exhausted_r;
+ALTER TABLE IF EXISTS tags DROP COLUMN exhausted_s;

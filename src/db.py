@@ -134,7 +134,7 @@ class DB:
         self.connection.commit()
 
     def get_tags(self, batch_count=None):
-        query = "SELECT * FROM public.tags WHERE exhausted = FALSE ORDER BY id"
+        query = "SELECT * FROM public.tags WHERE exhausted_t = FALSE OR exhausted_r = FALSE OR exhausted_s = FALSE ORDER BY id"
         if batch_count != None:
             if batch_count <= 0:
                 batch_count = 5
@@ -151,8 +151,12 @@ class DB:
             self.cursor(),
             """INSERT INTO tags (
                 name,
-                current_page,
-                exhausted
+                current_page_t,
+                current_page_r,
+                current_page_s,
+                exhausted_t,
+                exhausted_r,
+                exhausted_s
             ) VALUES %s
             ON CONFLICT DO NOTHING""",
             tags
@@ -167,14 +171,22 @@ class DB:
             self.cursor(),
             """UPDATE public.tags SET
                 name = data.name,
-                current_page = data.current_page,
-                exhausted = data.exhausted,
+                current_page_t = data.current_page_t,
+                current_page_r = data.current_page_r,
+                current_page_s = data.current_page_s,
+                exhausted_t = data.exhausted_t,
+                exhausted_r = data.exhausted_r,
+                exhausted_s = data.exhausted_s,
                 updated_at = (now() at time zone 'utc')
             FROM (VALUES %s) AS data (
                 id,
                 name,
-                current_page,
-                exhausted
+                current_page_t,
+                current_page_r,
+                current_page_s,
+                exhausted_t,
+                exhausted_r,
+                exhausted_s
             ) WHERE tags.id = data.id""",
             tags
         )
