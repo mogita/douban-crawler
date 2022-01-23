@@ -1,3 +1,7 @@
+# Project Moved
+
+**Project moved to https://gitlab.com/mogita/douban-crawler permanently**
+
 # Introduction
 
 A dead simple crawler for data scraping from Douban.
