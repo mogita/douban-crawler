@@ -127,4 +127,4 @@ python app.py crawl_books
 
 # License
 
-MIT © [mogita](https://github.com/mogita)
+AGPLv3 © [mogita](https://gitlab.com/mogita)
