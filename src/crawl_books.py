@@ -1,3 +1,13 @@
+"""
+Douban Crawler is a dead siple crawler for data scraping
+Copyright (C) 2022 mogita <me@mogita.com>
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
+"""
 import re
 import csv
 import time
@@ -180,7 +190,14 @@ def parse(source, url):
     # Parsing cover image
     cover_img_url = soup.select("#mainpic > a > img")[0].attrs["src"]
 
-    return book_model({
+    # Parsing "recommendation" section for more book links
+    recmd_books = []
+    recmd_el = soup.find("div", {"id": "db-rec-section"})
+    if recmd_el != None:
+        recmd_books = list(map(lambda r: parse_recmd_books(r), recmd_el.select("dl")))
+        recmd_books = list(filter(lambda r: r != None, recmd_books))
+
+    return (book_model({
         'title': title,
         'subtitle': subtitle,
         'author': author,
@@ -205,12 +222,32 @@ def parse(source, url):
         'origin_id': douban_book_id,
         'origin_url': douban_url,
         'crawled': True,
-    })
+    }), recmd_books)
+
+
+def parse_recmd_books(el):
+    link = ""
+    try:
+        link = el.select("dt > a")[0].attrs["href"]
+    except:
+        try:
+            link = el.select("dd > a")[0].attrs["href"]
+        except:
+            pass
+    if link != "":
+        return book_model({ 'origin_url': link })
+    else:
+        return None
+
+
+def flatten(t):
+    return [item for sublist in t for item in sublist]
 
 
 def _start(args):
     db_iterator = DB()
     db_updater = DB()
+    db_inserter = DB()
     with db_iterator.cursor(name="book_links") as cur:
         query = "SELECT * FROM books WHERE crawled = false"
         cur.execute(query)
@@ -225,9 +262,14 @@ def _start(args):
                 log.info(f"requesting {len(links)} links...")
                 response_list = list(tpool.map(req, links))
                 log.info(f"parsing {len(response_list)} responses...")
-                books_data = list(tpool.map(lambda r: parse(r[0], r[1]), response_list))
+                parse_res = list(tpool.map(lambda r: parse(r[0], r[1]), response_list))
+
+                books_data = list(map(lambda r: r[0], parse_res))
                 books_data = list(filter(lambda r: r != None, books_data))
                 log.info(f"parsed {len(books_data)} books")
+
+                recmd_books = flatten(list(map(lambda r: r[1], parse_res)))
+                log.info(f"found {len(recmd_books)} books from recommendation section")
 
             try:
                 db_updater.update_books_by_url(books_data)
@@ -235,6 +277,14 @@ def _start(args):
             except Exception as err:
                 db_updater.rollback()
                 log.error("failed to update books")
+                log.error(err)
+
+            try:
+                db_inserter.insert_books(recmd_books)
+                log.info(f"saved {len(recmd_books)} books from recommendation section")
+            except Exception as err:
+                db_inserter.rollback()
+                log.error(f"failed to save books from recommendation section")
                 log.error(err)
 
             time.sleep(np.random.rand()*5)
