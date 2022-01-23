@@ -11,8 +11,6 @@ You should have received a copy of the GNU General Public License along with thi
 
 "
 
-exit 0
-
 echo "getting tags..."
 python app.py get_tags
 
