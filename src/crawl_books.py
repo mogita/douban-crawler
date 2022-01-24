@@ -263,6 +263,7 @@ def _start(args):
                 response_list = list(tpool.map(req, links))
                 log.info(f"parsing {len(response_list)} responses...")
                 parse_res = list(tpool.map(lambda r: parse(r[0], r[1]), response_list))
+                parse_res = list(filter(lambda r: r != None, parse_res))
 
                 books_data = list(map(lambda r: r[0], parse_res))
                 books_data = list(filter(lambda r: r != None, books_data))
