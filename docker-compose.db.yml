@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  db:
+    container_name: douban-crawler-db
+    restart: unless-stopped
+    image: postgis/postgis:14-master
+    expose:
+      - 5432
+    volumes:
+      - ./_pg:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: crawler
+      POSTGRES_PASSWORD: crawler
+      POSTGRES_DB: crawler
+    networks:
+      - douban-crawler-db
+
+  migration:
+    container_name: douban-crawler-migration
+    build:
+      dockerfile: Dockerfile.migrate
+      context: "."
+    depends_on:
+      - db
+    networks:
+      - douban-crawler-db
+
+networks:
+  douban-crawler-db:
+
+volumes:
+  _pg:
