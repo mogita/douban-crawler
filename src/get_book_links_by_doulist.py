@@ -70,6 +70,8 @@ def _get_book_links_from_doulist(doulist_data):
                 log.error(err)
             break
 
+        book_list = list(filter(lambda book_el: book_el.select('div.title > a') != None and
+                                len(book_el.select('div.title > a')) > 0, book_list))
         book_urls = list(map(lambda book_el: book_el.select('div.title > a')[0].get('href'), book_list))
         # Since doulists are user created, here's a filter to make sure only books are saved at this time
         book_urls = list(filter(lambda url: url.find("book.douban.com") >= 0, book_urls))
