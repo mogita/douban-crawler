@@ -40,9 +40,10 @@ def main(raw_args=None):
 
         # save tags to db
         try:
-            log.info(f"saving {len(tag_models)} tags to database...")
-            db = DB()
-            db.insert_tags(tag_models)
+            if tag_models != None:
+                log.info(f"saving {len(tag_models)} tags to database...")
+                db = DB()
+                db.insert_tags(tag_models)
         except Exception as err:
             log.error("failed to save the tags to database")
             log.error(err)
