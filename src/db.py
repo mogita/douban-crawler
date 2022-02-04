@@ -202,6 +202,52 @@ class DB:
         )
         self.connection.commit()
 
+    def get_doulists(self, batch_count=None):
+        query = "SELECT * FROM public.doulists WHERE exhausted =FALSE ORDER BY id"
+        if batch_count != None:
+            if batch_count <= 0:
+                batch_count = 5
+            query += f" LIMIT {batch_count}"
+
+        cur = self.cursor(cursor_factory=RealDictCursor)
+        cur.execute(query)
+        return cur.fetchall()
+
+    def insert_doulists(self, doulists=[]):
+        if len(doulists) == 0:
+            return None
+        execute_values(
+            self.cursor(),
+            """INSERT INTO doulists (
+                list_id,
+                current_page,
+                exhausted
+            ) VALUES %s
+            ON CONFLICT DO NOTHING""",
+            doulists
+        )
+        self.connection.commit()
+
+    def update_doulists(self, doulists=[]):
+        if len(doulists) == 0:
+            return None
+        execute_values(
+            self.cursor(),
+            """UPDATE public.doulists SET
+                list_id = data.list_id,
+                current_page = data.current_page,
+                exhausted = data.exhausted,
+                updated_at = (now() at time zone 'utc')
+            FROM (VALUES %s) AS data (
+                id,
+                list_id,
+                current_page,
+                exhausted
+            ) WHERE doulists.id = data.id""",
+            doulists
+        )
+        self.connection.commit()
+
     def cursor(self, name=None, cursor_factory=RealDictCursor):
         return self.connection.cursor(name=name, cursor_factory=cursor_factory)
 
