@@ -57,7 +57,7 @@ def tag_model(attrs):
 def doulist_model(attrs):
     data = (
         attrs['list_id'] if 'list_id' in attrs else '',
-        attrs['current_page'] if 'current_page' in attrs else 1,
+        attrs['current_page'] if 'current_page' in attrs else 0,
         attrs['exhausted'] if 'exhausted' in attrs else False
     )
     if 'id' in attrs and attrs['id'] > 0:
