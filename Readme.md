@@ -119,7 +119,10 @@ migrate -database "postgres://user:pass@localhost:5432/crawler?sslmode=disable" 
 python app.py get_tags
 
 # Second, iterate through tags and fetch the links to the books
-python app.py get_book_links
+python app.py get_book_links_by_tag
+
+# Optionally, get links from doulists (list IDs need to be manually added to the database beforehand)
+python app.py get_book_links_by_doulist
 
 # Lastly start to crawl books from the links
 python app.py crawl_books
