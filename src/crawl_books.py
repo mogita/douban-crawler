@@ -42,13 +42,13 @@ def parse(source, url):
     douban_book_id = path_parts[2]
 
     if source == 404:
-        return (book_model(
+        return (book_model({
             'title': 'not_found',
             'origin': 'douban',
             'origin_id': douban_book_id,
             'origin_url': url,
             'crawled': True,
-        ), [])
+        }), [])
 
     soup = BeautifulSoup(source, 'html.parser')
     book_meta = soup.select('#info')
