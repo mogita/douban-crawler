@@ -16,7 +16,7 @@ def book_model(attrs):
         attrs['author_url'] if 'author_url' in attrs else "",
         attrs['author_intro'] if 'author_intro' in attrs else "",
         attrs['publisher'] if 'publisher' in attrs else "",
-        attrs['published_at'] if 'published_at' in attrs else None,
+        attrs['published_at'] if 'published_at' in attrs else 0,
         attrs['original_title'] if 'original_title' in attrs else "",
         attrs['translator'] if 'translator' in attrs else "",
         attrs['producer'] if 'producer' in attrs else "",

@@ -122,7 +122,7 @@ def parse(source, url):
     published_at = meta_list[meta_list.index('出版年:') + 1] if '出版年:' in meta_list else ''
 
     # convert "published_at" into a valid timestamp
-    published_at_ts = None
+    published_at_ts = 0
     if published_at != "":
         try:
             # Some(times) are represented as 10/8/2003
@@ -273,7 +273,7 @@ def _start(args):
                 parse_res = list(tpool.map(lambda r: parse(r[0], r[1]), response_list))
                 parse_res = list(filter(lambda r: r != None, parse_res))
 
-                books_data = list(map(lambda r: r[0], parse_res))
+                books_data = list(tpool.map(lambda r: r[0], parse_res))
                 books_data = list(filter(lambda r: r != None, books_data))
                 log.info(f"parsed {len(books_data)} books")
 
