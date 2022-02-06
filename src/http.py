@@ -46,6 +46,8 @@ def _make_req(url):
         time.sleep(0.1)
         try:
             resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, timeout=10)
+            if resp.status_code == 404:
+                return 404, url
             source = resp.text
             break
         except requests.exceptions.RequestException as err:
@@ -70,6 +72,8 @@ def _make_req_with_proxy(url):
                 "https": f"http://{proxy}"
             }
             resp = requests.get(url, headers={'User-Agent': get_a_random_ua()}, proxies=proxies, timeout=10)
+            if resp.status_code == 404:
+                return 404, url
             source = resp.text
             break
         except requests.exceptions.RequestException as err:

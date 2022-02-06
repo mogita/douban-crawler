@@ -37,12 +37,20 @@ def parse(source, url):
     if source == None:
         return None
 
-    soup = BeautifulSoup(source, 'html.parser')
-
     url_parts = urlsplit(url)
     path_parts = url_parts.path.split("/")
     douban_book_id = path_parts[2]
 
+    if source == 404:
+        return (book_model(
+            'title': 'not_found',
+            'origin': 'douban',
+            'origin_id': douban_book_id,
+            'origin_url': url,
+            'crawled': True,
+        ), [])
+
+    soup = BeautifulSoup(source, 'html.parser')
     book_meta = soup.select('#info')
     if not book_meta:
         return None
