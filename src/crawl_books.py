@@ -150,7 +150,7 @@ def parse(source, url):
             ).timestamp()
             published_at_ts = int(round(published_at_ts))
         except Exception as err:
-            log.warn("failed to parse published_at to timestamp")
+            log.warn(f"failed to parse published_at to timestamp for book {douban_book_id}, will save published_at as None")
             log.warn(err)
 
     # Parsing 内容简介 (book introduction)
