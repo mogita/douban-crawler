@@ -95,7 +95,7 @@ class DB:
                 author_url = data.author_url,
                 author_intro = data.author_intro,
                 publisher = data.publisher,
-                published_at = CASE WHEN (data.published_at = 'None') THEN NULL ELSE to_timestamp(data.published_at),
+                published_at = to_timestamp(data.published_at::int),
                 original_title = data.original_title,
                 translator = data.translator,
                 producer = data.producer,
