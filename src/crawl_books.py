@@ -149,6 +149,8 @@ def parse(source, url):
                 int(published_at_split[2] if len(published_at_split) >= 3 else "1"),
             ).timestamp()
             published_at_ts = int(round(published_at_ts))
+            if published_at_ts < 0:
+                published_at_ts = None
         except Exception as err:
             log.warn(f"failed to parse published_at to timestamp for book {douban_book_id}, will save published_at as None")
             log.warn(err)
