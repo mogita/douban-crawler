@@ -122,7 +122,7 @@ def parse(source, url):
     published_at = meta_list[meta_list.index('出版年:') + 1] if '出版年:' in meta_list else ''
 
     # convert "published_at" into a valid timestamp
-    published_at_ts = 0
+    published_at_ts = None
     if published_at != "":
         try:
             # Some(times) are represented as 10/8/2003
