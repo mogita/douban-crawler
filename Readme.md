@@ -1,7 +1,3 @@
-# Project Moved
-
-**Project moved to https://gitlab.com/mogita/douban-crawler permanently**
-
 # Introduction
 
 A dead simple crawler for data scraping from Douban.
@@ -134,4 +130,4 @@ python app.py crawl_books
 
 # License
 
-AGPLv3 © [mogita](https://gitlab.com/mogita)
+AGPLv3 © [mogita](https://github.com/mogita)
